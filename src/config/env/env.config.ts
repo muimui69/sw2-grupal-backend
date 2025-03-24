@@ -3,7 +3,11 @@
 export const envConfig = () => ({
   enviroment: process.env.NODE_ENV || 'dev',
   port: +process.env.PORT || 3000,
-  // database_url: process.env.DATABASE_URL,
+  db_port: +process.env.DB_PORT || 5432,
+  db_host: process.env.DB_HOST,
+  db_name: process.env.DB_NAME,
+  db_user: process.env.DB_USER,
+  db_password: process.env.DB_PASSWORD,
   secret_key_jwt: process.env.SECRET_KEY_JWT,
   // cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   // cloudinary_api_key: process.env.CLOUDINARY_API_KEY,

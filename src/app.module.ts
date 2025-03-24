@@ -3,6 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { envConfig } from './config/env/env.config';
 import { envSchema } from './config/env/env.schema';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
+import { EventModule } from './event/event.module';
+import { TicketModule } from './ticket/ticket.module';
+import { IdentityModule } from './identity/identity.module';
 
 
 @Module({
@@ -10,16 +14,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ConfigModule.forRoot({
       load: [envConfig],
       isGlobal: true,
-      validationSchema: envSchema
+      validationSchema: envSchema,
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASS,
-    })
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('db_host'),
+        port: configService.get<number>('db_port'),
+        username: configService.get<string>('db_user'),
+        password: configService.get<string>('db_password'),
+        database: configService.get<string>('db_name'),
+        autoLoadEntities: true,
+        synchronize: true
+      }),
+      inject: [ConfigService]
+    }),
+    AuthModule,
+    EventModule,
+    TicketModule,
+    IdentityModule
   ],
   // providers: [
   //   LogsService,
