@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./role.entity";
 import { User } from "./user.entity";
 
@@ -8,17 +8,53 @@ export class Permission {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column('text', {
+        unique: true,
+        nullable: false,
+    })
     name: string;
 
-    @Column()
+    @Column('text', {
+        nullable: true,
+    })
     description: string;
 
-    @Column({ type: 'boolean', default: true })
+    @Column('bool', {
+        nullable: false,
+        default: true,
+    })
     state: boolean;
 
-    @CreateDateColumn()
+    @Column('text', {
+        nullable: false,
+    })
+    slug: string;
+
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()',
+    })
     created_at: Date;
+
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()',
+    })
+    updated_at: Date;
+
+    //? TRIGGERS
+    @BeforeInsert()
+    toUpperCase() {
+        if (this.name) {
+            this.name = this.name.toUpperCase().trim();
+        }
+    }
+
+    @BeforeInsert()
+    transformToSlug() {
+        this.slug = this.name.toLowerCase().trim().replace(' ', '_');
+    }
+    // ?
 
     @ManyToMany(() => Role, role => role.permissions)
     roles: Role[];

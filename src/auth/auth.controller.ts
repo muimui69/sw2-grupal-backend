@@ -1,34 +1,73 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import {
+  CreateUserAdministratorDTO,
+  CreateUserManagerDTO,
+  CreateUserOwnerDTO,
+  LoginDTO,
+  RegisterUserDTO,
+} from './dto';
+import { CreateUserTechnicalDTO } from './dto/create-user-technical';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { fileChangeName } from '../common/helpers/function-helper';
+import { diskStorage } from 'multer';
+import { GetUser } from './decorators/get-user.decorator';
+import { User } from './entities';
+import { Auth } from './decorators/auth.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Post('register-admin')
+  @UseInterceptors(
+    FileInterceptor('archivo', {
+      storage: diskStorage({
+        filename: fileChangeName,
+        destination: './static/files',
+      }),
+    }),
+  )
+  registerAdmin(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createUserAdministratorDTO: CreateUserAdministratorDTO,
+  ) {
+    return this.authService.createUserAdministrator(
+      createUserAdministratorDTO,
+      file,
+    );
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Post('register-manager')
+  registerManager(@Body() createUserManagerDTO: CreateUserManagerDTO) {
+    return this.authService.createUserManager(createUserManagerDTO);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Post('register-technical')
+  registerTechnical(@Body() createUserTechnicalDTO: CreateUserTechnicalDTO) {
+    return this.authService.createUserTechnical(createUserTechnicalDTO);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
+  @Post('register-owner')
+  registerOwner(@Body() createUserOwnerDTO: CreateUserOwnerDTO) {
+    return this.authService.createUserOwner(createUserOwnerDTO);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @Post('login')
+  login(@Body() loginDTO: LoginDTO) {
+    return this.authService.login(loginDTO);
+  }
+
+  @Get('check-status')
+  @Auth()
+  checkAuthStatus(@GetUser() user: User) {
+    return this.authService.checkAuthStatus(user);
   }
 }
