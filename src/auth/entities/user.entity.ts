@@ -1,11 +1,12 @@
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./role.entity";
 import { Purchase } from "src/event/entities/purchase.entity";
 import { IdentityVerification } from "src/identity/entities/identity-verification.entity";
 import { Permission } from './permission.entity';
+import { Tenant } from 'src/tenant/entities/tenant.entity';
 
 @Entity()
-export class User {
+export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -82,6 +83,7 @@ export class User {
     })
     updated_at: Date;
 
+    //?RELATIONS
     @ManyToOne(() => Role, role => role.users)
     role: Role;
 
@@ -94,5 +96,11 @@ export class User {
     @ManyToMany(() => Permission, permission => permission.users)
     @JoinTable({ name: 'user_role_permission' })
     permissions: Permission[];
+
+
+    @ManyToOne(() => Tenant, tenant => tenant.users)
+    tenant: Tenant;
+
+    //?
 
 }

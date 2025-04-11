@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { EventModule } from './event/event.module';
 import { TicketModule } from './ticket/ticket.module';
 import { IdentityModule } from './identity/identity.module';
+import { TenantModule } from './tenant/tenant.module';
 
 
 @Module({
@@ -33,7 +34,8 @@ import { IdentityModule } from './identity/identity.module';
     AuthModule,
     EventModule,
     TicketModule,
-    IdentityModule
+    IdentityModule,
+    TenantModule
   ],
   // providers: [
   //   LogsService,
