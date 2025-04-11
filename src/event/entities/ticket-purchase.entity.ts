@@ -1,5 +1,5 @@
 import { Ticket } from "src/ticket/entities/ticket.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Purchase } from "./purchase.entity";
 
 @Entity()
@@ -7,33 +7,66 @@ export class TicketPurchase {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column('int', {
+        nullable: false,
+    })
     quantity: number;
 
-    @Column()
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: false,
+    })
     price: number;
 
-    @Column()
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: false,
+    })
     subtotal: number;
 
-    @Column()
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: false,
+    })
     system_fee: number;
 
-    @Column({ nullable: true })
-    qr_code: string;
+    @Column('text', {
+        nullable: false
+    })
+    qr_code_url: string;
 
-    @Column({ nullable: true })
+    @Column('timestamp', {
+        nullable: true //?modificar
+    })
     validated_at: Date;
 
-    @Column({ type: 'boolean', default: true })
+    @Column('bool', {
+        default: true,
+        nullable: false,
+    })
     status: boolean;
 
-    @CreateDateColumn()
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()'
+    })
     created_at: Date;
 
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()'
+    })
+    updated_at: Date;
+
+    //?RELATIONS
     @ManyToOne(() => Ticket, ticket => ticket.ticketPurchases)
     ticket: Ticket;
 
     @ManyToOne(() => Purchase, purchase => purchase.ticketPurchases)
     purchase: Purchase;
+    //?
+
 }

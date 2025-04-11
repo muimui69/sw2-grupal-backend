@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Event } from "./event.entity";
 
 @Entity()
@@ -6,18 +6,40 @@ export class Faculty {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column('text', {
+        nullable: false,
+    })
     name: string;
 
-    @Column()
+    @Column('text', {
+        nullable: true,
+    })
     location: string;
 
-    @Column({ type: 'boolean', default: true })
+    @Column('bool', {
+        default: true,
+        nullable: false,
+    })
     state: boolean;
 
-    @CreateDateColumn()
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()',
+    })
     created_at: Date;
 
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()',
+    })
+    updated_at: Date;
+
+    //? RELATIONS
     @OneToMany(() => Event, event => event.faculty)
     events: Event[];
+
+    // @OneToMany(() => FacultySubscription, fs => fs.faculty)
+    // subscriptions: FacultySubscription[];
+
+    //? 
 }

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Faculty } from "./faculty.entity";
 import { Section } from "./section.entity";
 import { IdentityVerification } from "src/identity/entities/identity-verification.entity";
@@ -8,26 +8,53 @@ export class Event {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column('text', {
+        nullable: false,
+    })
     title: string;
 
-    @Column()
+    @Column('text', {
+        nullable: true,
+    })
     description: string;
 
-    @Column()
+    @Column('text', {
+        nullable: false,
+    })
     image_url: string;
 
-    @Column()
+    @Column('timestamp', {
+        nullable: false,
+    })
     start_date: Date;
 
-    @Column()
+    @Column('timestamp', {
+        nullable: false,
+    })
     end_date: Date;
 
-    @Column({ type: 'boolean', default: true })
+    @Column('text', {
+        nullable: false,
+    })
+    address: string;
+
+    @Column('bool', {
+        default: true,
+        nullable: false,
+    })
     state: boolean;
 
-    @CreateDateColumn()
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()',
+    })
     created_at: Date;
+
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()',
+    })
+    updated_at: Date;
 
     @ManyToOne(() => Faculty, faculty => faculty.events)
     faculty: Faculty;

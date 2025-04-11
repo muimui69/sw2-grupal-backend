@@ -53,6 +53,8 @@ export class Role {
     }
     //?
 
+
+    // ? RELATIONS
     @OneToMany(() => User, user => user.role, {
         cascade: true,
         eager: true,
@@ -62,5 +64,6 @@ export class Role {
     @ManyToMany(() => Permission, permission => permission.roles)
     @JoinTable({ name: 'role_permission' })
     permissions: Permission[];
+    // ?
 
 }

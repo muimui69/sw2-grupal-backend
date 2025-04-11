@@ -95,5 +95,4 @@ export class User {
     @JoinTable({ name: 'user_role_permission' })
     permissions: Permission[];
 
-
 }
