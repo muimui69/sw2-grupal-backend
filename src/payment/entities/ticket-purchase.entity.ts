@@ -1,6 +1,7 @@
-import { Ticket } from "src/ticket/entities/ticket.entity";
+import { Ticket } from "src/event/entities/ticket.entity";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Purchase } from "./purchase.entity";
+import { Purchase } from "../../payment/entities/purchase.entity";
+import { Tenant } from 'src/tenant/entities/tenant.entity';
 
 @Entity()
 export class TicketPurchase {
@@ -67,6 +68,9 @@ export class TicketPurchase {
 
     @ManyToOne(() => Purchase, purchase => purchase.ticketPurchases)
     purchase: Purchase;
+
+    @ManyToOne(() => Tenant)
+    tenant: Tenant;
     //?
 
 }

@@ -1,6 +1,7 @@
-import { Ticket } from "src/ticket/entities/ticket.entity";
+import { Ticket } from "src/event/entities/ticket.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Event } from "./event.entity";
+import { Tenant } from 'src/tenant/entities/tenant.entity';
 
 @Entity()
 export class Section {
@@ -16,6 +17,20 @@ export class Section {
         nullable: false,
     })
     description: string;
+
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: false,
+    })
+    price: number;
+
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: false,
+    })
+    total_quantity: number;
 
     @Column('bool', {
         default: true,
@@ -41,5 +56,8 @@ export class Section {
 
     @OneToMany(() => Ticket, ticket => ticket.section)
     tickets: Ticket[];
+
+    @ManyToOne(() => Tenant)
+    tenant: Tenant;
     //?
 }

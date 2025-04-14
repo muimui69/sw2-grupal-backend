@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "ty
 import { Faculty } from "./faculty.entity";
 import { Section } from "./section.entity";
 import { IdentityVerification } from "src/identity/entities/identity-verification.entity";
+import { Tenant } from 'src/tenant/entities/tenant.entity';
 
 @Entity()
 export class Event {
@@ -56,6 +57,7 @@ export class Event {
     })
     updated_at: Date;
 
+    //?RELATIONS
     @ManyToOne(() => Faculty, faculty => faculty.events)
     faculty: Faculty;
 
@@ -64,4 +66,8 @@ export class Event {
 
     @OneToMany(() => IdentityVerification, iv => iv.event)
     identityVerifications: IdentityVerification[];
+
+    @ManyToOne(() => Tenant)
+    tenant: Tenant;
+    //?
 }

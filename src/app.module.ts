@@ -5,9 +5,10 @@ import { envSchema } from './config/env/env.schema';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { EventModule } from './event/event.module';
-import { TicketModule } from './ticket/ticket.module';
 import { IdentityModule } from './identity/identity.module';
 import { TenantModule } from './tenant/tenant.module';
+import { BlockchainModule } from './blockchain/blockchain.module';
+import { PaymentModule } from './payment/payment.module';
 
 
 @Module({
@@ -33,9 +34,10 @@ import { TenantModule } from './tenant/tenant.module';
     }),
     AuthModule,
     EventModule,
-    TicketModule,
     IdentityModule,
-    TenantModule
+    TenantModule,
+    BlockchainModule,
+    PaymentModule
   ],
   // providers: [
   //   LogsService,

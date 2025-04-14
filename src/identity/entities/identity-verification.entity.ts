@@ -1,5 +1,6 @@
 import { User } from "src/auth/entities/user.entity";
 import { Event } from "src/event/entities/event.entity";
+import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -40,5 +41,8 @@ export class IdentityVerification {
 
     @ManyToOne(() => Event, event => event.identityVerifications)
     event: Event;
+
+    @ManyToOne(() => Tenant)
+    tenant: Tenant;
     //?
 }

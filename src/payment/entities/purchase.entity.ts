@@ -1,6 +1,8 @@
 import { User } from "src/auth/entities/user.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { TicketPurchase } from "./ticket-purchase.entity";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Payment } from './payment.entity';
+import { Tenant } from 'src/tenant/entities/tenant.entity';
+import { TicketPurchase } from './ticket-purchase.entity';
 
 @Entity()
 export class Purchase {
@@ -36,6 +38,13 @@ export class Purchase {
 
     @OneToMany(() => TicketPurchase, tp => tp.purchase)
     ticketPurchases: TicketPurchase[];
+
+    @OneToOne(() => Payment, payment => payment.purchase)
+    @JoinColumn()
+    payment: Payment;
+
+    @ManyToOne(() => Tenant)
+    tenant: Tenant;
     //?
 }
 

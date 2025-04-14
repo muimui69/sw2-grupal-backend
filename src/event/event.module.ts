@@ -4,9 +4,8 @@ import { EventController } from './event.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
 import { Faculty } from './entities/faculty.entity';
-import { Purchase } from './entities/purchase.entity';
 import { Section } from './entities/section.entity';
-import { TicketPurchase } from './entities/ticket-purchase.entity';
+import { Ticket } from './entities/ticket.entity';
 
 @Module({
   controllers: [EventController],
@@ -15,9 +14,8 @@ import { TicketPurchase } from './entities/ticket-purchase.entity';
     TypeOrmModule.forFeature([
       Event,
       Faculty,
-      Purchase,
       Section,
-      TicketPurchase
+      Ticket
     ])
   ]
 })

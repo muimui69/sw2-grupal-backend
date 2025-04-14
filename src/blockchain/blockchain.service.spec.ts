@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TicketService } from './ticket.service';
+import { BlockchainService } from './blockchain.service';
 
-describe('TicketService', () => {
-  let service: TicketService;
+describe('BlockchainService', () => {
+  let service: BlockchainService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TicketService],
+      providers: [BlockchainService],
     }).compile();
 
-    service = module.get<TicketService>(TicketService);
+    service = module.get<BlockchainService>(BlockchainService);
   });
 
   it('should be defined', () => {

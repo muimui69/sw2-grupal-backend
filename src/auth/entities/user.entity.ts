@@ -1,6 +1,6 @@
 import { BaseEntity, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./role.entity";
-import { Purchase } from "src/event/entities/purchase.entity";
+import { Purchase } from "src/payment/entities/purchase.entity";
 import { IdentityVerification } from "src/identity/entities/identity-verification.entity";
 import { Permission } from './permission.entity';
 import { Tenant } from 'src/tenant/entities/tenant.entity';
@@ -97,10 +97,8 @@ export class User extends BaseEntity {
     @JoinTable({ name: 'user_role_permission' })
     permissions: Permission[];
 
-
-    @ManyToOne(() => Tenant, tenant => tenant.users)
+    @ManyToOne(() => Tenant)
     tenant: Tenant;
-
     //?
 
 }

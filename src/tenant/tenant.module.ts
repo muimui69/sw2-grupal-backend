@@ -6,6 +6,8 @@ import { Tenant } from './entities/tenant.entity';
 import { SubscriptionService } from './services/subscription.service';
 import { TenantMiddleware } from './middlewares/tenant.middleware';
 import { TenantInterceptor } from './interceptors/tenant.interceptor';
+import { MemberTenant } from './entities/member-tenant.entity';
+import { Configuration } from './entities/configuration.entity';
 
 
 @Module({
@@ -18,7 +20,9 @@ import { TenantInterceptor } from './interceptors/tenant.interceptor';
     imports: [
         TypeOrmModule.forFeature([
             Tenant,
-            Subscription
+            Subscription,
+            MemberTenant,
+            Configuration
         ]),
     ],
     exports: [

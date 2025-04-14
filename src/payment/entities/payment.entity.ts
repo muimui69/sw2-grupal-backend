@@ -1,24 +1,27 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Event } from "./event.entity";
+import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Tenant } from 'src/tenant/entities/tenant.entity';
+import { Purchase } from './purchase.entity';
 
 @Entity()
-export class Faculty {
+export class Payment {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column('text', {
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
         nullable: false,
     })
-    name: string;
+    amount: string;
 
-    @Column('text', {
-        nullable: true,
+    @Column({
+        type: 'enum', enum: ['card'],
+        nullable: false
     })
-    location: string;
+    method: string;
 
     @Column('bool', {
-        default: true,
+        default: false,
         nullable: false,
     })
     state: boolean;
@@ -36,8 +39,8 @@ export class Faculty {
     updated_at: Date;
 
     //? RELATIONS
-    @OneToMany(() => Event, event => event.faculty)
-    events: Event[];
+    @OneToOne(() => Purchase, purchase => purchase.payment)
+    purchase: Purchase[];
 
     @ManyToOne(() => Tenant)
     tenant: Tenant;

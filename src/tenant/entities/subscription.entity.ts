@@ -35,10 +35,7 @@ export class Subscription {
     })
     updated_at: Date;
 
-    // @OneToOne(() => Tenant)
-    // tenant: Tenant;
-
     @OneToOne(() => Tenant, tenant => tenant.subscription)
-    @JoinColumn()  // Importante: marca este lado como el propietario de la relación
+    @JoinColumn()
     tenant: Tenant;
 }
