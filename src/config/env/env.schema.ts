@@ -8,6 +8,7 @@ export const envSchema = Joi.object({
   DB_USER: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
   SECRET_KEY_JWT: Joi.string().required(),
+  STRIPE_KEY: Joi.string().required(),
   // CLOUDINARY_CLOUD_NAME: Joi.string().required(),
   // CLOUDINARY_API_KEY: Joi.string().required(),
   // CLOUDINARY_API_SECRET: Joi.string().required(),

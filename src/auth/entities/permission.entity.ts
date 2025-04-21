@@ -1,6 +1,5 @@
 import { BeforeInsert, Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./role.entity";
-import { User } from "./user.entity";
 
 
 @Entity()
@@ -60,8 +59,6 @@ export class Permission {
     @ManyToMany(() => Role, role => role.permissions)
     roles: Role[];
 
-    @ManyToMany(() => User, user => user.permissions)
-    users: User[];
     // ?
 
 }

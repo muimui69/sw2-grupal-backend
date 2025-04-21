@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm";
-import { Tenant } from "./tenant.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { PaymentMembreship } from './payment-membreship';
 
 @Entity()
 export class Configuration {
@@ -17,28 +17,31 @@ export class Configuration {
     limit_tickets: number;
 
     @Column('bool', {
-        default: true
+        default: true,
+        nullable: false
     })
     blockchain: boolean;
 
     @Column('bool', {
-        default: true
+        default: true,
+        nullable: false
     })
     facial_recognition: boolean;
 
     @Column('bool', {
-        default: false
+        default: false,
+        nullable: false
     })
     document_recognition: boolean;
 
     @Column('bool', {
-        default: false
+        default: false,
+        nullable: false
     })
     firewall: boolean;
 
-    //?RELATIONS    
-    @OneToOne(() => Tenant)
-    @JoinColumn()
-    tenant: Tenant;
+    //?RELATIONS
+    @OneToMany(() => PaymentMembreship, record => record.configuration)
+    subscriptionRecords: PaymentMembreship[];
     //?
 }

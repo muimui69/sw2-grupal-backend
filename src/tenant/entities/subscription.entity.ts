@@ -1,6 +1,6 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Tenant } from "src/tenant/entities/tenant.entity";
-import { SubscriptionPlanType } from 'src/common/enums/suscription-plan-type/suscription-plan-type.enum';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { PaymentMembreship } from './payment-membreship';
+import { SubscriptionPlanTypeEnum } from '../../common/enums/suscription-plan-type-enum/suscription-plan-type.enum';
 
 @Entity()
 export class Subscription {
@@ -9,33 +9,55 @@ export class Subscription {
 
     @Column({
         type: 'enum',
-        enum: SubscriptionPlanType,
-        default: SubscriptionPlanType.BASIC
+        enum: SubscriptionPlanTypeEnum,
+        default: SubscriptionPlanTypeEnum.BASIC
     })
-    plan_type: SubscriptionPlanType;
+    plan_type: SubscriptionPlanTypeEnum;
 
-    @Column('timestamp')
-    start_date: Date;
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: false,
+    })
+    price: number;
 
-    @Column('timestamp')
-    end_date: Date;
+    @Column('int', {
+        nullable: true,
+    })
+    duration: number;
+
+    // @Column('timestamp', {
+    //     nullable: false,
+    //     default: () => 'now()',
+    // })
+    // start_date: Date;
+
+    // @Column('timestamp', {
+    //     nullable: false,
+    //     default: () => 'now()',
+    // })
+    // end_date: Date;
 
     @Column('bool', {
-        default: true
+        default: true,
+        nullable: false,
     })
-    active: boolean;
+    is_active: boolean;
 
     @Column('timestamp', {
+        nullable: false,
         default: () => 'now()'
     })
     created_at: Date;
 
     @Column('timestamp', {
+        nullable: false,
         default: () => 'now()'
     })
     updated_at: Date;
 
-    @OneToOne(() => Tenant, tenant => tenant.subscription)
-    @JoinColumn()
-    tenant: Tenant;
+    //?RELATIONS
+    @OneToMany(() => PaymentMembreship, record => record.subscription)
+    tenantRecords: PaymentMembreship[];
+    //?
 }

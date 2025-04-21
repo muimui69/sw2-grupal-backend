@@ -1,6 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { SubscriptionPlanType } from 'src/common/enums/suscription-plan-type/suscription-plan-type.enum';
 import { TenantResponseDto } from '../tenant/tenant-response.dto';
+import { SubscriptionPlanTypeEnum } from 'src/common/enums/suscription-plan-type-enum/suscription-plan-type.enum';
 
 @Exclude()
 export class SubscriptionResponseDto {
@@ -8,7 +8,7 @@ export class SubscriptionResponseDto {
     id: string;
 
     @Expose()
-    plan_type: SubscriptionPlanType;
+    plan_type: SubscriptionPlanTypeEnum;
 
     @Expose()
     start_date: Date;

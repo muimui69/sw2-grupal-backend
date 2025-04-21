@@ -1,12 +1,16 @@
 import { Section } from "src/event/entities/section.entity";
 import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
 import { Tenant } from 'src/tenant/entities/tenant.entity';
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Ticket {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Index()
+    @Column('uuid')
+    tenantId: string;
 
     @Column('timestamp', {
         nullable: false,
@@ -46,6 +50,7 @@ export class Ticket {
     ticketPurchases: TicketPurchase[];
 
     @ManyToOne(() => Tenant)
+    @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
     //?
 }

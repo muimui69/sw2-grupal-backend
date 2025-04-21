@@ -1,12 +1,10 @@
-import { BaseEntity, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Role } from "./role.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Purchase } from "src/payment/entities/purchase.entity";
 import { IdentityVerification } from "src/identity/entities/identity-verification.entity";
-import { Permission } from './permission.entity';
-import { Tenant } from 'src/tenant/entities/tenant.entity';
+import { MemberTenant } from 'src/tenant/entities/member-tenant.entity';
 
 @Entity()
-export class User extends BaseEntity {
+export class User {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -17,7 +15,6 @@ export class User extends BaseEntity {
     email: string;
 
     @Column('text', {
-        select: false,
         nullable: false,
     })
     password: string;
@@ -32,10 +29,10 @@ export class User extends BaseEntity {
     })
     lastname: string;
 
-    @Column('int', {
+    @Column('text', {
         nullable: true,
     })
-    phone: number;
+    phone: string;
 
     @Column('int', {
         nullable: true,
@@ -84,21 +81,14 @@ export class User extends BaseEntity {
     updated_at: Date;
 
     //?RELATIONS
-    @ManyToOne(() => Role, role => role.users)
-    role: Role;
-
     @OneToMany(() => Purchase, purchase => purchase.user)
     purchases: Purchase[];
 
     @OneToMany(() => IdentityVerification, iv => iv.user)
     identityVerifications: IdentityVerification[];
 
-    @ManyToMany(() => Permission, permission => permission.users)
-    @JoinTable({ name: 'user_role_permission' })
-    permissions: Permission[];
-
-    @ManyToOne(() => Tenant)
-    tenant: Tenant;
+    @OneToMany(() => MemberTenant, memberTenant => memberTenant.user)
+    tenantMemberships: MemberTenant[];
     //?
 
 }

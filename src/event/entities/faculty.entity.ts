@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Event } from "./event.entity";
 import { Tenant } from 'src/tenant/entities/tenant.entity';
 
@@ -6,6 +6,10 @@ import { Tenant } from 'src/tenant/entities/tenant.entity';
 export class Faculty {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Index()
+    @Column('uuid')
+    tenantId: string;
 
     @Column('text', {
         nullable: false,
@@ -40,6 +44,7 @@ export class Faculty {
     events: Event[];
 
     @ManyToOne(() => Tenant)
+    @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
     //? 
 }

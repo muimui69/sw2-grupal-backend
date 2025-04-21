@@ -1,20 +1,21 @@
-import { IsNotEmpty, IsString, IsEnum, IsDateString } from 'class-validator';
-import { SubscriptionPlanType } from 'src/common/enums/suscription-plan-type/suscription-plan-type.enum';
+import { IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID, MinLength } from "class-validator";
 
-export class CreateSubscriptionDto {
+export class SubscriptionCreateDTO {
     @IsNotEmpty()
     @IsString()
-    tenant_id: string;
+    @IsUUID()
+    subscriptionId: string;
 
-    @IsNotEmpty()
-    @IsEnum(SubscriptionPlanType)
-    plan_type: SubscriptionPlanType;
+    @IsString()
+    @IsUrl()
+    name: string
 
-    @IsNotEmpty()
-    @IsDateString()
-    start_date: Date;
+    @IsString()
+    @MinLength(5)
+    displayName: string
 
-    @IsNotEmpty()
-    @IsDateString()
-    end_date: Date;
+    @IsOptional()
+    @IsString()
+    @IsUUID()
+    userId?: string;
 }

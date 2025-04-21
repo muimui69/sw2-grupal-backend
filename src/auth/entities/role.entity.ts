@@ -1,6 +1,5 @@
-import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Permission } from "./permission.entity";
-import { User } from "./user.entity";
 
 
 @Entity()
@@ -23,7 +22,7 @@ export class Role {
         default: true,
         nullable: false,
     })
-    state: boolean;
+    is_active: boolean;
 
     @Column('timestamp', {
         nullable: false,
@@ -55,14 +54,18 @@ export class Role {
 
 
     // ? RELATIONS
-    @OneToMany(() => User, user => user.role, {
-        cascade: true,
-        eager: true,
-    })
-    users: User[];
+    // @OneToMany(() => User, user => user.role, {
+    //     cascade: true,
+    //     eager: true,
+    // })
+    // users: User[];
 
     @ManyToMany(() => Permission, permission => permission.roles)
-    @JoinTable({ name: 'role_permission' })
+    @JoinTable({
+        name: 'role_permission',
+        joinColumn: { name: 'role_id', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'permission_id', referencedColumnName: 'id' }
+    })
     permissions: Permission[];
     // ?
 

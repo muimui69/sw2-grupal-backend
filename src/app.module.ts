@@ -9,6 +9,8 @@ import { IdentityModule } from './identity/identity.module';
 import { TenantModule } from './tenant/tenant.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { PaymentModule } from './payment/payment.module';
+import { SeedModule } from './seed/seed.module';
+import { UserModule } from './user/user.module';
 
 
 @Module({
@@ -37,7 +39,9 @@ import { PaymentModule } from './payment/payment.module';
     IdentityModule,
     TenantModule,
     BlockchainModule,
-    PaymentModule
+    PaymentModule,
+    SeedModule,
+    UserModule
   ],
   // providers: [
   //   LogsService,

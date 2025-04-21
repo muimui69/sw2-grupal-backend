@@ -1,12 +1,16 @@
 import { User } from "src/auth/entities/user.entity";
 import { Event } from "src/event/entities/event.entity";
 import { Tenant } from 'src/tenant/entities/tenant.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class IdentityVerification {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Index()
+    @Column('uuid')
+    tenantId: string;
 
     @Column('text', {
         nullable: false,
@@ -43,6 +47,7 @@ export class IdentityVerification {
     event: Event;
 
     @ManyToOne(() => Tenant)
+    @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
     //?
 }

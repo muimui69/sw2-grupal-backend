@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { Purchase } from './purchase.entity';
 
@@ -6,6 +6,10 @@ import { Purchase } from './purchase.entity';
 export class Payment {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Index()
+    @Column('uuid')
+    tenantId: string;
 
     @Column('decimal', {
         precision: 10,
@@ -40,9 +44,10 @@ export class Payment {
 
     //? RELATIONS
     @OneToOne(() => Purchase, purchase => purchase.payment)
-    purchase: Purchase[];
+    purchase: Purchase;
 
     @ManyToOne(() => Tenant)
+    @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
     //? 
 }

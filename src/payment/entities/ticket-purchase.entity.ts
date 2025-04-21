@@ -1,5 +1,5 @@
 import { Ticket } from "src/event/entities/ticket.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Purchase } from "../../payment/entities/purchase.entity";
 import { Tenant } from 'src/tenant/entities/tenant.entity';
 
@@ -7,6 +7,10 @@ import { Tenant } from 'src/tenant/entities/tenant.entity';
 export class TicketPurchase {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Index()
+    @Column('uuid')
+    tenantId: string;
 
     @Column('int', {
         nullable: false,
@@ -70,6 +74,7 @@ export class TicketPurchase {
     purchase: Purchase;
 
     @ManyToOne(() => Tenant)
+    @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
     //?
 

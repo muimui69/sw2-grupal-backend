@@ -1,5 +1,5 @@
 import { User } from "src/auth/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Payment } from './payment.entity';
 import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { TicketPurchase } from './ticket-purchase.entity';
@@ -8,6 +8,10 @@ import { TicketPurchase } from './ticket-purchase.entity';
 export class Purchase {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Index()
+    @Column('uuid')
+    tenantId: string;
 
     @Column('decimal', {
         precision: 10,
@@ -44,6 +48,7 @@ export class Purchase {
     payment: Payment;
 
     @ManyToOne(() => Tenant)
+    @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
     //?
 }

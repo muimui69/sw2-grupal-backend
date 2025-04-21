@@ -13,9 +13,9 @@ import {
  * @param error - Error recibido desde cualquier servicio o base de datos.
  * @returns Nunca retorna (lanza una excepción).
  */
-export const handleError = (error: any): never => {
-  const logger = new Logger('GlobalErrorHandler');
-  logger.error('Error capturado:', error);
+export const handleError = (error: any, context = 'General'): never => {
+  const logger = new Logger(`HandleError - ${context}`);
+  logger.error(error);
 
   // Errores específicos de PostgreSQL (códigos de error comunes)
   if (error.code === '23505') throw new BadRequestException('Registro duplicado: ' + error.detail); // Unique constraint

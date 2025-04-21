@@ -1,5 +1,5 @@
 import { Ticket } from "src/event/entities/ticket.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Event } from "./event.entity";
 import { Tenant } from 'src/tenant/entities/tenant.entity';
 
@@ -7,6 +7,10 @@ import { Tenant } from 'src/tenant/entities/tenant.entity';
 export class Section {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Index()
+    @Column('uuid')
+    tenantId: string;
 
     @Column('text', {
         nullable: false,
@@ -58,6 +62,7 @@ export class Section {
     tickets: Ticket[];
 
     @ManyToOne(() => Tenant)
+    @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
     //?
 }

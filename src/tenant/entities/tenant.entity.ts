@@ -1,6 +1,14 @@
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "src/auth/entities/user.entity";
-import { Subscription } from './subscription.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Event } from 'src/event/entities/event.entity';
+import { Faculty } from '../../event/entities/faculty.entity';
+import { Section } from 'src/event/entities/section.entity';
+import { Ticket } from 'src/event/entities/ticket.entity';
+import { IdentityVerification } from 'src/identity/entities/identity-verification.entity';
+import { Payment } from 'src/payment/entities/payment.entity';
+import { Purchase } from 'src/payment/entities/purchase.entity';
+import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
+import { PaymentMembreship } from './payment-membreship';
+import { MemberTenant } from './member-tenant.entity';
 
 @Entity()
 export class Tenant {
@@ -14,7 +22,6 @@ export class Tenant {
     name: string;
 
     @Column('text', {
-        unique: true,
         nullable: false
     })
     display_name: string;
@@ -27,7 +34,7 @@ export class Tenant {
     @Column('bool', {
         default: true
     })
-    active: boolean;
+    is_active: boolean;
 
     @Column('timestamp', {
         default: () => 'now()'
@@ -40,10 +47,37 @@ export class Tenant {
     updated_at: Date;
 
     //? RELATIONS
-    @OneToMany(() => User, user => user.tenant)
-    users: User[];
+    // @OneToMany(() => User, user => user.tenant)
+    // users: User[];
 
-    @OneToOne(() => Subscription, subscription => subscription.tenant)
-    subscription: Subscription;
+    @OneToMany(() => Event, event => event.tenant)
+    event: Event[];
+
+    @OneToMany(() => Faculty, faculty => faculty.tenant)
+    faculty: Faculty[];
+
+    @OneToMany(() => Section, section => section.tenant)
+    section: Section[];
+
+    @OneToMany(() => Ticket, ticket => ticket.tenant)
+    ticket: Ticket[];
+
+    @OneToMany(() => IdentityVerification, identityVerification => identityVerification.tenant)
+    identityVerification: IdentityVerification[];
+
+    @OneToMany(() => Payment, payment => payment.tenant)
+    payment: Payment[];
+
+    @OneToMany(() => Purchase, purchase => purchase.tenant)
+    purchase: Purchase[];
+
+    @OneToMany(() => TicketPurchase, ticketPurchase => ticketPurchase.tenant)
+    ticketPurchase: TicketPurchase[];
+
+    @OneToMany(() => PaymentMembreship, record => record.tenant)
+    subscriptionRecords: PaymentMembreship[];
+
+    @OneToMany(() => MemberTenant, memberTenant => memberTenant.tenant)
+    tenantMemberships: MemberTenant[];
     //?
 }

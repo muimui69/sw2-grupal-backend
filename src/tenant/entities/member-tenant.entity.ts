@@ -1,26 +1,40 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Tenant } from "./tenant.entity";
 import { User } from "src/auth/entities/user.entity";
+import { Role } from "src/auth/entities/role.entity";
 
 @Entity()
 export class MemberTenant {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column('text', {
-        nullable: false
-    })
-    role: string;
+    @Index()
+    @Column()
+    tenantId: string;
 
     @Column('text', {
         nullable: true
     })
-    tenantAddress: string;
+    password_tenant: string;
 
     @Column('text', {
         nullable: true
     })
-    eventAddress: string;
+    tenant_address: string;
+
+    @Column('text', {
+        nullable: true
+    })
+    event_address: string;
+
+    @Column('timestamp', {
+        nullable: false,
+        default: () => 'now()',
+    })
+    created_at: Date;
+
+    @UpdateDateColumn()
+    updated_at: Date;
 
     //?RELATIONS
     @ManyToOne(() => Tenant)
@@ -28,5 +42,8 @@ export class MemberTenant {
 
     @ManyToOne(() => User)
     user: User;
+
+    @ManyToOne(() => Role)
+    role: Role;
     //?
 }
