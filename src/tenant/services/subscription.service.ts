@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Stripe } from 'stripe';
 import { v4 as uuid } from 'uuid';
@@ -20,6 +20,8 @@ import { RoleEnum } from 'src/user/enums/role.enum';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { SubscriptionPlanTypeEnum } from 'src/common/enums/suscription-plan-type-enum/suscription-plan-type.enum';
 import { Configuration } from '../entities/configuration.entity';
+import { ApiResponse } from 'src/common/interfaces/response.interface';
+import { ListSubscription, PaymentSubscription, SusbcriptionByID, WebhookPayment } from '../interfaces/subscription.interface';
 
 @Injectable()
 export class SubscriptionService {
@@ -36,7 +38,6 @@ export class SubscriptionService {
         private readonly userRepository: Repository<User>,
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
-
         private readonly dataSource: DataSource,
         private readonly configService: ConfigService,
     ) {
@@ -49,7 +50,7 @@ export class SubscriptionService {
         take,
         order,
         select
-    }: IOptionSubscription) {
+    }: IOptionSubscription): Promise<ApiResponse<ListSubscription>> {
         try {
             const query = this.subscriptionRepository.createQueryBuilder('subscription');
 
@@ -76,7 +77,28 @@ export class SubscriptionService {
                 query.select(selections);
             }
             const allSubscriptions = await query.getMany();
-            return allSubscriptions;
+
+            const total = await this.countSubscriptions({});
+
+            const response = {
+                statusCode: HttpStatus.OK,
+                message: 'Suscripciones encontradas',
+                data: {
+                    total,
+                    subscriptions: allSubscriptions.map((subscription) => ({
+                        id: subscription.id,
+                        plan_type: subscription.plan_type,
+                        price: subscription.price,
+                        duration: subscription.duration,
+                        is_active: subscription.is_active,
+                        created_at: subscription.created_at,
+                        updated_at: subscription.updated_at
+                    })),
+                }
+            }
+
+            return response;
+
         } catch (err) {
             throw handleError(err, 'findAllSubscriptions');
         }
@@ -100,7 +122,7 @@ export class SubscriptionService {
         }
     }
 
-    async findSubscriptionById(id: string, { select }: IOptionSubscription) {
+    async findSubscriptionById(id: string, { select }: IOptionSubscription): Promise<ApiResponse<SusbcriptionByID>> {
         try {
             const query = this.subscriptionRepository.createQueryBuilder('subscription')
                 .where('subscription.id = :id', { id });
@@ -120,7 +142,13 @@ export class SubscriptionService {
             if (!subscription)
                 throw new NotFoundException(`Suscripción con ID ${id} no encontrada`);
 
-            return subscription;
+            return {
+                statusCode: HttpStatus.ACCEPTED,
+                message: `Suscripción con ID ${id} encontrada`,
+                data: {
+                    subscription
+                }
+            }
         } catch (err) {
             throw handleError(err, 'findSubscriptionById');
         }
@@ -153,11 +181,11 @@ export class SubscriptionService {
         }
     }
 
-    async paymentSubscription(subscriptionCreateDTO: SubscriptionCreateDTO) {
+    async paymentSubscription(subscriptionCreateDTO: SubscriptionCreateDTO): Promise<ApiResponse<PaymentSubscription>> {
         try {
             const { subscriptionId, userId, name, displayName } = subscriptionCreateDTO;
 
-            const findSubscription = await this.findSubscriptionById(subscriptionId, {});
+            const { data: { subscription } } = await this.findSubscriptionById(subscriptionId, {});
 
             const findHosting = await this.tenantRepository.findOne({
                 where: [
@@ -183,18 +211,22 @@ export class SubscriptionService {
                 {
                     price_data: {
                         product_data: {
-                            name: findSubscription.plan_type,
-                            description: `${findSubscription.duration}dias de suscripción`,
+                            name: subscription.plan_type,
+                            description: `${subscription.duration}dias de suscripción`,
                         },
                         currency: 'usd',
-                        unit_amount: findSubscription.price * 100
+                        unit_amount: subscription.price * 100
                     },
                     quantity: 1
                 }
             ], subscriptionCreateDTO);
 
             return {
-                paymentStripe
+                statusCode: HttpStatus.CREATED,
+                message: "Procesando pago de suscripción",
+                data: {
+                    paymentStripe
+                }
             };
         } catch (error) {
             throw handleError(error, 'paymentSubscription');
@@ -216,7 +248,7 @@ export class SubscriptionService {
         return pago;
     }
 
-    async webhookPayment(body: Stripe.Metadata) {
+    async webhookPayment(body: Stripe.Metadata): Promise<ApiResponse<WebhookPayment>> {
         try {
             const dataBody = {
                 name: body.name,
@@ -225,7 +257,8 @@ export class SubscriptionService {
                 displayName: body.displayName,
             };
             const saltOrRounds = genSaltSync(10);
-            const subscriptionFind = await this.findSubscriptionById(dataBody.subscriptionId, {});
+
+            const { data: { subscription } } = await this.findSubscriptionById(dataBody.subscriptionId, {});
 
 
             const queryRunner = this.dataSource.createQueryRunner();
@@ -235,7 +268,7 @@ export class SubscriptionService {
             try {
                 const timeNow = new Date();
                 const startTime = timeNow;
-                const endTime = addDays(timeNow, subscriptionFind.duration);
+                const endTime = addDays(timeNow, subscription.duration);
 
                 const userFind = await queryRunner.manager.findOne(User, {
                     where: { id: dataBody.userId }
@@ -256,7 +289,7 @@ export class SubscriptionService {
                 tenantCreate.display_name = dataBody.displayName;
                 await queryRunner.manager.save(tenantCreate);
 
-                const planType = subscriptionFind.plan_type;
+                const planType = subscription.plan_type as SubscriptionPlanTypeEnum;
                 const configurationFind = await this.findConfigurationByPlanType(planType, {});
 
                 if (!configurationFind)
@@ -316,9 +349,13 @@ export class SubscriptionService {
                 // );
 
                 return {
-                    tenant: tenantCreate,
-                    members: memberTenant,
-                    payment
+                    statusCode: HttpStatus.OK,
+                    message: "Webhook de pago procesado correctamente",
+                    data: {
+                        tenant: tenantCreate,
+                        members: memberTenant,
+                        payment
+                    }
                 };
             } catch (err) {
                 await queryRunner.rollbackTransaction();

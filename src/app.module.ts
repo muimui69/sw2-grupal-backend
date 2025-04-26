@@ -11,6 +11,9 @@ import { BlockchainModule } from './blockchain/blockchain.module';
 import { PaymentModule } from './payment/payment.module';
 import { SeedModule } from './seed/seed.module';
 import { UserModule } from './user/user.module';
+import { TicketPurchase } from './payment/entities/ticket-purchase.entity';
+import { Ticket } from './event/entities/ticket.entity';
+import { AuditModule } from './audit/audit.module';
 
 
 @Module({
@@ -30,7 +33,8 @@ import { UserModule } from './user/user.module';
         password: configService.get<string>('db_password'),
         database: configService.get<string>('db_name'),
         autoLoadEntities: true,
-        synchronize: true
+        synchronize: true,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService]
     }),
@@ -41,7 +45,10 @@ import { UserModule } from './user/user.module';
     BlockchainModule,
     PaymentModule,
     SeedModule,
-    UserModule
+    UserModule,
+    TicketPurchase,
+    Ticket,
+    AuditModule,
   ],
   // providers: [
   //   LogsService,

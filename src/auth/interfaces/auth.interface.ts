@@ -25,9 +25,14 @@ export interface AuthTokenResult {
 }
 
 //?tenant
+// export interface IUseTokenService {
+//     role: string;
+//     userId: string;
+//     isExpired: boolean
+// }
 export interface IUseTokenService {
-    role: string;
-    userId: string;
+    // role: string;
+    memberTenantId: string;
     isExpired: boolean
 }
 
@@ -35,9 +40,15 @@ export interface PayloadTokenTenant {
     userId: string;
 }
 
-export interface AuthTokenResultService {
-    role?: string;
-    userId: string;
+// export interface AuthTokenResultService {
+//     role?: string;
+//     userId: string;
+//     iat: number;
+//     exp: number;
+// }
+
+export interface AuthTokenTenantResult {
+    memberTenantId: string;
     iat: number;
     exp: number;
 }

@@ -46,7 +46,9 @@ export class Ticket {
     @ManyToOne(() => Section, section => section.tickets)
     section: Section;
 
-    @OneToMany(() => TicketPurchase, tp => tp.ticket)
+    // @OneToMany(() => TicketPurchase, tp => tp.ticket)
+    // ticketPurchases: TicketPurchase[];
+    @OneToMany(() => TicketPurchase, ticketPurchase => ticketPurchase.ticket)
     ticketPurchases: TicketPurchase[];
 
     @ManyToOne(() => Tenant)

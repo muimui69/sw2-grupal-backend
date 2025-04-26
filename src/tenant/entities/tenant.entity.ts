@@ -78,6 +78,6 @@ export class Tenant {
     subscriptionRecords: PaymentMembreship[];
 
     @OneToMany(() => MemberTenant, memberTenant => memberTenant.tenant)
-    tenantMemberships: MemberTenant[];
+    memberTenants: MemberTenant[];
     //?
 }

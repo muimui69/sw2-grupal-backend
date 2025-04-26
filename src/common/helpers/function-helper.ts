@@ -1,59 +1,75 @@
-import { v4 as uuid } from 'uuid';
 import {
   BadRequestException,
+  ConflictException,
+  ForbiddenException,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
-  ForbiddenException,
 } from '@nestjs/common';
 
-/**
- * Maneja los errores globales de la aplicación, detectando códigos específicos y lanzando excepciones adecuadas.
- * @param error - Error recibido desde cualquier servicio o base de datos.
- * @returns Nunca retorna (lanza una excepción).
- */
-export const handleError = (error: any, context = 'General'): never => {
-  const logger = new Logger(`HandleError - ${context}`);
-  logger.error(error);
-
-  // Errores específicos de PostgreSQL (códigos de error comunes)
-  if (error.code === '23505') throw new BadRequestException('Registro duplicado: ' + error.detail); // Unique constraint
-  if (error.code === '23502') throw new BadRequestException('Campo requerido faltante: ' + error.detail); // Not null constraint
-
-  // Errores específicos de servicios de terceros o integraciones
-  if (error.code === 'EENVELOPE') throw new BadRequestException(error.response); // Ejemplo: Stripe o servicios externos
-  if (error.response?.error === 'Unauthorized') throw new UnauthorizedException(error.response.message);
-  if (error.response?.error === 'Bad Request') throw new BadRequestException(error.response.message);
-  if (error.response?.error === 'Not Found') throw new NotFoundException(error.response.message);
-  if (error.response?.error === 'Forbidden') throw new ForbiddenException(error.response.message);
-
-  // Manejo de errores no controlados
-  logger.error('Error no manejado:', error);
-  throw new InternalServerErrorException('Error inesperado, revisa los logs para más detalles.');
-};
-
-/**
- * Estados del Pago en el sistema (ejemplo de suscripciones o tickets).
- */
-export enum PayState {
-  Pending = 1,
-  Processing = 2,
-  Paid = 3,
+interface ErrorDetails {
+  context: string;
+  action?: string;
+  entityName?: string;
+  entityId?: string;
+  additionalInfo?: Record<string, any>;
 }
 
 /**
- * Cambia el nombre del archivo al subirlo, agregando un identificador UUID al nombre.
- * @param req - Solicitud HTTP.
- * @param file - Archivo subido.
- * @param callback - Callback para retornar el nuevo nombre del archivo.
+ * Manejo de errores mejorado con soporte específico para TypeORM y PostgreSQL
  */
-export const fileChangeName = (
-  req: Express.Request,
-  file: Express.Multer.File,
-  callback: (error: Error | null, filename: string) => void,
-) => {
-  const fileExtension = file.mimetype.split('/')[1];
-  const newName = `${uuid()}.${fileExtension}`;
-  callback(null, newName);
+export const handleError = (error: any, details: ErrorDetails | string): never => {
+  // Normalizar detalles
+  const errorDetails = typeof details === 'string' ? { context: details } : details;
+  const logger = new Logger(errorDetails.context);
+
+  // Log estructurado
+  const logData = {
+    message: error.message,
+    stack: error.stack,
+    code: error.code,
+    query: error.query, // Para errores de TypeORM
+    parameters: error.parameters, // Para errores de TypeORM
+    ...errorDetails
+  };
+
+  logger.error(JSON.stringify(logData));
+
+  // Errores específicos de PostgreSQL (códigos comunes)
+  switch (error.code) {
+    // Constraint violations
+    case '23505': throw new ConflictException(`Registro duplicado: ${extractConstraintDetail(error)}`);
+    case '23502': throw new BadRequestException(`Campo requerido faltante: ${extractConstraintDetail(error)}`);
+    case '23503': throw new BadRequestException(`Violación de integridad referencial: ${extractConstraintDetail(error)}`);
+    case '23514': throw new BadRequestException(`Violación de regla de validación: ${extractConstraintDetail(error)}`);
+
+    // Privilegios y autenticación
+    case '28000':
+    case '28P01': throw new UnauthorizedException('Error de autenticación');
+    case '42501': throw new ForbiddenException('Privilegios insuficientes');
+
+    // Errores de TypeORM
+    case 'EntityNotFound': throw new NotFoundException(`${errorDetails.entityName || 'Entidad'} no encontrada`);
+  }
+
+  // Casos específicos por tipo de error
+  if (error instanceof NotFoundException) throw error;
+  if (error instanceof BadRequestException) throw error;
+  if (error instanceof UnauthorizedException) throw error;
+  if (error instanceof ForbiddenException) throw error;
+  if (error instanceof ConflictException) throw error;
+
+  // Error genérico
+  throw new InternalServerErrorException(
+    'Ha ocurrido un error inesperado. Nuestro equipo ha sido notificado.',
+    { cause: error }
+  );
 };
+
+// Función para extraer detalles de restricciones de PostgreSQL
+function extractConstraintDetail(error: any): string {
+  if (error.detail) return error.detail;
+  if (error.parameters?.length) return `Valores: ${error.parameters.join(', ')}`;
+  return 'Detalles no disponibles';
+}

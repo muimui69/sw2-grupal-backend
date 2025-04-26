@@ -47,7 +47,7 @@ export class Event {
         default: true,
         nullable: false,
     })
-    state: boolean;
+    is_active: boolean;
 
     @Column('timestamp', {
         nullable: false,

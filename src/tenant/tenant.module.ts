@@ -9,10 +9,15 @@ import { MemberTenant } from './entities/member-tenant.entity';
 import { PaymentMembreship } from './entities/payment-membreship';
 import { SubscriptionService } from './services/subscription.service';
 import { AuthModule } from 'src/auth/auth.module';
-import { SubscriptionController } from './controllers/Suscription.controller';
+import { SubscriptionController } from './controllers/subscription.controller';
 import { UserModule } from 'src/user/user.module';
 import { Configuration } from './entities/configuration.entity';
 import { Role } from 'src/auth/entities/role.entity';
+import { JwtStrategy } from 'src/auth/strategy/jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthTenantGuard } from 'src/auth/guards/auth-tenant.guard';
+import { MemberTenantService } from './services/member-tenant.service';
 
 
 @Module({
@@ -23,8 +28,11 @@ import { Role } from 'src/auth/entities/role.entity';
     providers: [
         TenantService,
         SubscriptionService,
+        MemberTenantService,
         TenantMiddleware,
-        TenantInterceptor
+        TenantInterceptor,
+        JwtStrategy,
+        AuthTenantGuard
     ],
     imports: [
         AuthModule,
@@ -37,10 +45,25 @@ import { Role } from 'src/auth/entities/role.entity';
             Configuration,
             Role
         ]),
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => {
+                return {
+                    secret: configService.get('secret_key_jwt'),
+                    signOptions: {
+                        expiresIn: '24h',
+                    },
+                };
+            },
+        }),
     ],
     exports: [
         TenantService,
-        SubscriptionService
+        SubscriptionService,
+        MemberTenantService,
+        JwtModule,
+        AuthTenantGuard
     ]
 })
 export class TenantModule { }

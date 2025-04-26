@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { UserService } from 'src/user/services/user.service';
-import { useToken } from 'src/utils/user.token';
+import { useTokenSaas } from 'src/utils/user.token';
 
 @Injectable()
 export class AuthSaasGuard implements CanActivate {
@@ -15,9 +15,9 @@ export class AuthSaasGuard implements CanActivate {
         const req = context.switchToHttp().getRequest<Request>();
         const token = req.headers["auth-token"]
         if (!token || Array.isArray(token))
-            throw new UnauthorizedException("subdomain in not domain");
+            throw new UnauthorizedException("Token saas not found");
 
-        const manageToken = useToken(token);
+        const manageToken = useTokenSaas(token);
         if (typeof manageToken === "string")
             throw new UnauthorizedException(manageToken);
 
