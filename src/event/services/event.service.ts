@@ -126,7 +126,7 @@ export class EventService {
 
   async create(createEventDto: CreateEventDto, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
     try {
-      const { facultyId, file, ...eventDetails } = createEventDto;
+      const { facultyId, ...eventDetails } = createEventDto;
 
       if (new Date(createEventDto.start_date) > new Date(createEventDto.end_date)) {
         throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');

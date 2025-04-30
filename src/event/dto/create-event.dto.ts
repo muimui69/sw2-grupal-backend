@@ -12,7 +12,8 @@ export class CreateEventDto {
     // @IsNotEmpty()
     @IsOptional()
     @IsString()
-    file: File | string;
+    image_url: string;
+    // file: File | string;
 
     @IsNotEmpty()
     @IsDateString()
