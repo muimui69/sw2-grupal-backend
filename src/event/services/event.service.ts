@@ -2,14 +2,14 @@ import { Injectable, BadRequestException, NotFoundException, HttpStatus } from '
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event } from '../entities/event.entity';
-import { CreateEventDto } from '../dto/create-event.dto';
-import { UpdateEventDto } from '../dto/update-event.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ApiResponse, createApiResponse } from 'src/common/interfaces/response.interface';
 import { AuditService } from 'src/audit/services/audit.service';
 import { ActionType } from 'src/audit/entities/audit.entity';
 import { handleError } from 'src/common/helpers/function-helper';
 import { MemberTenantService } from 'src/tenant/services/member-tenant.service';
+import { CreateEventDto } from '../dto/event/create-event.dto';
+import { UpdateEventDto } from '../dto/event/update-event.dto';
 
 @Injectable()
 export class EventService {
@@ -81,7 +81,10 @@ export class EventService {
       throw handleError(error, {
         context: 'EventService.findAll',
         action: 'query',
-        entityName: 'Event'
+        entityName: 'Event',
+        additionalInfo: {
+          message: 'Error al obtener eventos',
+        },
       });
     }
   }
@@ -119,7 +122,10 @@ export class EventService {
         context: 'EventService.findOne',
         action: 'query',
         entityName: 'Event',
-        entityId: id
+        entityId: id,
+        additionalInfo: {
+          message: 'Error al obtener evento',
+        },
       });
     }
   }
@@ -160,7 +166,10 @@ export class EventService {
         context: 'EventService.create',
         action: 'create',
         entityName: 'Event',
-        additionalInfo: { dto: createEventDto }
+        additionalInfo: {
+          dto: createEventDto,
+          message: 'Error al crear evento',
+        }
       });
     }
   }
@@ -229,7 +238,10 @@ export class EventService {
         action: 'update',
         entityName: 'Event',
         entityId: id,
-        additionalInfo: { dto: updateEventDto }
+        additionalInfo: {
+          dto: updateEventDto,
+          message: 'Error al actualizar evento',
+        }
       });
     }
   }
@@ -274,7 +286,10 @@ export class EventService {
         context: 'EventService.remove',
         action: 'soft-delete',
         entityName: 'Event',
-        entityId: id
+        entityId: id,
+        additionalInfo: {
+          message: 'Error al desactivar evento',
+        }
       });
     }
   }
@@ -333,7 +348,10 @@ export class EventService {
         context: 'EventService.findByFaculty',
         action: 'query',
         entityName: 'Event',
-        additionalInfo: { facultyId }
+        additionalInfo: {
+          facultyId,
+          message: 'Error al obtener eventos por facultad',
+        }
       });
     }
   }
@@ -402,7 +420,10 @@ export class EventService {
         context: 'EventService.getEventStatistics',
         action: 'query',
         entityName: 'Event',
-        additionalInfo: { memberTenantId }
+        additionalInfo: {
+          memberTenantId,
+          message: 'Error al obtener estadísticas de eventos',
+        }
       });
     }
   }

@@ -14,6 +14,14 @@ export const useTokenSaas = (token: string): IUseToken | string => {
             isExpired: +expiresDate <= +currentDate / 1000,
         };
     } catch (error) {
-        throw handleError(error, 'useTokenSaas')
+        throw handleError(error, {
+            context: 'Utils.useTokenSaas',
+            action: 'decode',
+            entityName: 'Token',
+            additionalInfo: {
+                token,
+                message: 'Token is invalid',
+            }
+        })
     }
 };

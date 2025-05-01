@@ -14,7 +14,7 @@ export class TenantService {
     constructor(
         @InjectRepository(MemberTenant)
         private readonly memberTenantRepository: Repository<MemberTenant>,
-        
+
         private readonly jwtService: JwtService
     ) { }
     async getAllTenants({
@@ -108,7 +108,14 @@ export class TenantService {
                 }
             };
         } catch (err) {
-            throw handleError(err, 'getAllTenants');
+            throw handleError(err, {
+                context: 'TenantService.getAllTenants',
+                action: 'query',
+                entityName: 'WebhookPayment',
+                additionalInfo: {
+                    message: "Error al procesar el webhook de pago",
+                }
+            });
         }
     }
 
@@ -130,7 +137,14 @@ export class TenantService {
             const count = await queryBuilder.getCount();
             return count;
         } catch (err) {
-            throw handleError(err, 'countTenants');
+            throw handleError(err, {
+                context: 'TenantService.countTenants',
+                action: 'query',
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    message: "Error al contar los tenants",
+                }
+            });
         }
     }
 
@@ -141,7 +155,14 @@ export class TenantService {
                 relations: ['tenant', 'user', 'role']
             });
         } catch (err) {
-            throw handleError(err, 'getMemberTenantById');
+            throw handleError(err, {
+                context: 'TenantService.getMemberTenantById',
+                action: 'query',
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    message: "Error al obtener el tenant por ID",
+                }
+            });
         }
     }
 

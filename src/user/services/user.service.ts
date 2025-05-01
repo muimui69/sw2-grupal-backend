@@ -77,7 +77,15 @@ export class UserService {
       if (err instanceof BadRequestException) {
         throw err;
       }
-      throw handleError(err, 'createUser');
+      throw handleError(err, {
+        context: 'UserService.createUser',
+        action: 'query',
+        entityName: 'User',
+        additionalInfo: {
+          createUserDto,
+          message: 'Error al crear el usuario',
+        }
+      });
     }
   }
 
@@ -94,7 +102,14 @@ export class UserService {
         order: order as FindOptionsOrder<User>
       });
     } catch (error) {
-      throw handleError(error, 'findUser');
+      throw handleError(error, {
+        context: 'UserService.findUser',
+        action: 'query',
+        entityName: 'User',
+        additionalInfo: {
+          message: 'Error al buscar el usuario',
+        }
+      });
     }
   }
 
@@ -107,7 +122,14 @@ export class UserService {
         where: where as FindOptionsWhere<User>,
       });
     } catch (error) {
-      throw handleError(error, 'countUsers');
+      throw handleError(error, {
+        context: 'UserService.countUsers',
+        action: 'query',
+        entityName: 'User',
+        additionalInfo: {
+          message: 'Error al contar los usuarios',
+        }
+      });
     }
   }
 
@@ -116,7 +138,14 @@ export class UserService {
     try {
       return await this.userRepository.findOneBy({ id });
     } catch (error) {
-      throw handleError(error, 'findIdUser');
+      throw handleError(error, {
+        context: 'UserService.findIdUser',
+        action: 'query',
+        entityName: 'User',
+        additionalInfo: {
+          message: 'Error al buscar el usuario por ID',
+        }
+      });
     }
   }
 
@@ -137,7 +166,14 @@ export class UserService {
         take
       });
     } catch (error) {
-      throw handleError(error, 'findAllUser');
+      throw handleError(error, {
+        context: 'UserService.findAllUser',
+        action: 'query',
+        entityName: 'User',
+        additionalInfo: {
+          message: 'Error al buscar todos los usuarios',
+        }
+      });
     }
   }
 

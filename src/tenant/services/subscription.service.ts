@@ -100,7 +100,14 @@ export class SubscriptionService {
             return response;
 
         } catch (err) {
-            throw handleError(err, 'findAllSubscriptions');
+            throw handleError(err, {
+                context: 'SubscriptionService.findAllSubscriptions',
+                action: 'query',
+                entityName: 'Subscription',
+                additionalInfo: {
+                    message: "Error al obtener las suscripciones",
+                }
+            });
         }
     }
 
@@ -118,7 +125,14 @@ export class SubscriptionService {
             const count = await query.getCount();
             return count;
         } catch (err) {
-            throw handleError(err, 'countSubscriptions');
+            throw handleError(err, {
+                context: 'SubscriptionService.countSubscriptions',
+                action: 'query',
+                entityName: 'Subscription',
+                additionalInfo: {
+                    message: "Error al contar las suscripciones",
+                }
+            });
         }
     }
 
@@ -150,7 +164,14 @@ export class SubscriptionService {
                 }
             }
         } catch (err) {
-            throw handleError(err, 'findSubscriptionById');
+            throw handleError(err, {
+                context: 'SubscriptionService.findSubscriptionById',
+                action: 'query',
+                entityName: 'Subscription',
+                additionalInfo: {
+                    message: "Error al obtener la suscripción por ID",
+                }
+            });
         }
     }
 
@@ -177,7 +198,14 @@ export class SubscriptionService {
 
             return configuration;
         } catch (err) {
-            throw handleError(err, 'findConfigurationByPlanType');
+            throw handleError(err, {
+                context: 'SubscriptionService.findConfigurationByPlanType',
+                action: 'query',
+                entityName: 'Configuration',
+                additionalInfo: {
+                    message: "Error al obtener la configuracion por plan",
+                }
+            });
         }
     }
 
@@ -229,7 +257,14 @@ export class SubscriptionService {
                 }
             };
         } catch (error) {
-            throw handleError(error, 'paymentSubscription');
+            throw handleError(error, {
+                context: 'SubscriptionService.paymentSubscription',
+                action: 'query',
+                entityName: 'Payment',
+                additionalInfo: {
+                    message: "Error al procesar el pago de la suscripción",
+                }
+            });
         }
     }
 
@@ -364,7 +399,14 @@ export class SubscriptionService {
                 await queryRunner.release();
             }
         } catch (err) {
-            throw handleError(err, 'webhookPayment');
+            throw handleError(err, {
+                context: 'SubscriptionService.webhookPayment',
+                action: 'query',
+                entityName: 'WebhookPayment',
+                additionalInfo: {
+                    message: "Error al procesar el webhook de pago",
+                }
+            });
         }
     }
 }

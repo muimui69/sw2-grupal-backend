@@ -14,6 +14,14 @@ export const useTokenTenant = (token: string): IUseTokenService | string => {
             isExpired: +expiresDate <= +currentDate / 1000,
         };
     } catch (error) {
-        throw handleError(error, 'useTokenTenant')
+        throw handleError(error, {
+            context: 'Utils.useTokenTenant',
+            action: 'decode',
+            entityName: 'Token',
+            additionalInfo: {
+                token,
+                message: 'Token is invalid',
+            }
+        })
     }
 };

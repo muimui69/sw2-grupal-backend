@@ -1,8 +1,22 @@
 import { BadRequestException, ConflictException, ForbiddenException, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
-import chalk from 'chalk';
 
-// Define la estructura de los metadatos de error
+let chalk;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  chalk = require('chalk');
+} catch (err) {
+  chalk = {
+    red: (text) => text,
+    yellow: (text) => text,
+    white: (text) => text,
+    gray: (text) => text,
+    cyan: (text) => text,
+    bold: { red: (text) => text, white: (text) => text }
+  };
+  console.warn(err, 'Chalk no está disponible. Usando versión sin color para el manejo de errores.');
+}
+
 export interface ErrorMetadata {
   context: string;
   action?: string;
@@ -20,77 +34,119 @@ export interface ErrorMetadata {
 export function handleError(error: any, metadata: ErrorMetadata) {
   const logger = new Logger(metadata.context);
 
-  // Extraer mensaje y datos relevantes
+  // Extraer datos del error
   const errorMessage = error?.message || 'Error desconocido';
   const statusCode = error?.status || 500;
   const stackLines = error?.stack?.split('\n') || [];
 
-  // Formateo bonito para la consola
+  // Configuración de ancho constante para mejor formato
+  const BOX_WIDTH = 80;
+  const CONTENT_WIDTH = BOX_WIDTH - 4; // -4 para "║ " al inicio y " ║" al final
+
+  // Función para crear líneas con padding correcto
+  const formatLine = (content: string) => {
+    return chalk.red('║ ') + content.padEnd(CONTENT_WIDTH) + chalk.red(' ║');
+  };
+
+  // Función para dividir texto largo en múltiples líneas
+  const wrapText = (text: string, label: string = '', labelColor = chalk.yellow): string[] => {
+    const prefix = label ? `${labelColor(label)} ` : '';
+    const prefixLength = label.length + 1; // +1 para el espacio después
+    const maxContentWidth = CONTENT_WIDTH - prefixLength;
+
+    // Si el texto cabe en una línea, devolverlo
+    if (text.length <= maxContentWidth) {
+      return [prefix + chalk.white(text.padEnd(maxContentWidth))];
+    }
+
+    // Dividir en múltiples líneas
+    const lines = [];
+    let remainingText = text;
+
+    // Primera línea con el prefijo/etiqueta
+    lines.push(prefix + chalk.white(remainingText.substring(0, maxContentWidth).padEnd(maxContentWidth)));
+    remainingText = remainingText.substring(maxContentWidth);
+
+    // Líneas adicionales con padding para alinear con el contenido después del prefijo
+    while (remainingText.length > 0) {
+      const paddingSpaces = ' '.repeat(prefixLength);
+      const lineText = remainingText.substring(0, maxContentWidth);
+      lines.push(paddingSpaces + chalk.white(lineText.padEnd(maxContentWidth)));
+      remainingText = remainingText.substring(maxContentWidth);
+    }
+
+    return lines;
+  };
+
+  // Renderizar el cuadro de error
   console.error('\n');
-  console.error(chalk.red('╔════════════════════════════════════════════════════════════════════════════╗'));
-  console.error(chalk.red('║ ') + chalk.bold.red('ERROR DETECTADO') + chalk.red(' '.repeat(59) + '║'));
-  console.error(chalk.red('╠════════════════════════════════════════════════════════════════════════════╣'));
-  console.error(chalk.red('║ ') + chalk.yellow('Contexto:   ') + chalk.white(metadata.context.padEnd(55)) + chalk.red('║'));
+
+  // Cabecera
+  console.error(chalk.red('╔' + '═'.repeat(BOX_WIDTH - 2) + '╗'));
+  console.error(formatLine(chalk.bold.red('ERROR DETECTADO')));
+  console.error(chalk.red('╠' + '═'.repeat(BOX_WIDTH - 2) + '╣'));
+
+  // Información sobre el error
+  wrapText(metadata.context, 'Contexto:  ', chalk.yellow).forEach(line => {
+    console.error(formatLine(line));
+  });
 
   if (metadata.action) {
-    console.error(chalk.red('║ ') + chalk.yellow('Acción:     ') + chalk.white(metadata.action.padEnd(55)) + chalk.red('║'));
-  }
-
-  if (metadata.entityName) {
-    console.error(chalk.red('║ ') + chalk.yellow('Entidad:    ') + chalk.white(metadata.entityName.padEnd(55)) + chalk.red('║'));
-  }
-
-  if (metadata.entityId) {
-    console.error(chalk.red('║ ') + chalk.yellow('ID:         ') + chalk.white(metadata.entityId.padEnd(55)) + chalk.red('║'));
-  }
-
-  console.error(chalk.red('║ ') + chalk.yellow('Mensaje:    ') + chalk.white(errorMessage.substring(0, 55).padEnd(55)) + chalk.red('║'));
-
-  if (errorMessage.length > 55) {
-    const chunks = chunkString(errorMessage.substring(55), 70);
-    chunks.forEach(chunk => {
-      console.error(chalk.red('║ ') + chalk.white(chunk.padEnd(70)) + chalk.red('║'));
+    wrapText(metadata.action, 'Acción:    ', chalk.yellow).forEach(line => {
+      console.error(formatLine(line));
     });
   }
 
-  console.error(chalk.red('╠════════════════════════════════════════════════════════════════════════════╣'));
-  console.error(chalk.red('║ ') + chalk.bold.white('Stack Trace (resumido):') + chalk.red(' '.repeat(46) + '║'));
+  if (metadata.entityName) {
+    wrapText(metadata.entityName, 'Entidad:   ', chalk.yellow).forEach(line => {
+      console.error(formatLine(line));
+    });
+  }
 
-  // Mostrar solo las primeras 3 líneas del stack para no saturar
+  if (metadata.entityId) {
+    wrapText(metadata.entityId, 'ID:        ', chalk.yellow).forEach(line => {
+      console.error(formatLine(line));
+    });
+  }
+
+  // Mensaje de error, posiblemente multilinea
+  wrapText(errorMessage, 'Mensaje:   ', chalk.yellow).forEach(line => {
+    console.error(formatLine(line));
+  });
+
+  // Stack trace
+  console.error(chalk.red('╠' + '═'.repeat(BOX_WIDTH - 2) + '╣'));
+  console.error(formatLine(chalk.bold.white('Stack Trace (resumido):')));
+
   stackLines.slice(0, 3).forEach(line => {
-    const cleanLine = line.trim();
-    const chunks = chunkString(cleanLine, 70);
-    chunks.forEach(chunk => {
-      console.error(chalk.red('║ ') + chalk.gray(chunk.padEnd(70)) + chalk.red('║'));
+    wrapText(line.trim(), '', () => '').forEach(wrappedLine => {
+      console.error(formatLine(chalk.gray(wrappedLine)));
     });
   });
 
   if (stackLines.length > 3) {
-    console.error(chalk.red('║ ') + chalk.gray('... y más líneas no mostradas (ver logs detallados)'.padEnd(70)) + chalk.red('║'));
+    console.error(formatLine(chalk.gray('... y más líneas no mostradas (ver logs detallados)')));
   }
 
-  // Si hay información adicional, mostrarla
+  // Información adicional si existe
   if (metadata.additionalInfo) {
-    console.error(chalk.red('╠════════════════════════════════════════════════════════════════════════════╣'));
-    console.error(chalk.red('║ ') + chalk.bold.white('Información adicional:') + chalk.red(' '.repeat(47) + '║'));
+    console.error(chalk.red('╠' + '═'.repeat(BOX_WIDTH - 2) + '╣'));
+    console.error(formatLine(chalk.bold.white('Información adicional:')));
+
     const infoStr = JSON.stringify(metadata.additionalInfo, null, 2);
-    const infoLines = infoStr.split('\n');
-    infoLines.slice(0, 5).forEach(line => {
-      const chunks = chunkString(line, 70);
-      chunks.forEach(chunk => {
-        console.error(chalk.red('║ ') + chalk.cyan(chunk.padEnd(70)) + chalk.red('║'));
-      });
+    infoStr.split('\n').slice(0, 5).forEach(line => {
+      console.error(formatLine(chalk.cyan(line)));
     });
 
-    if (infoLines.length > 5) {
-      console.error(chalk.red('║ ') + chalk.cyan('... más información no mostrada'.padEnd(70)) + chalk.red('║'));
+    if (infoStr.split('\n').length > 5) {
+      console.error(formatLine(chalk.cyan('... más información no mostrada')));
     }
   }
 
-  console.error(chalk.red('╚════════════════════════════════════════════════════════════════════════════╝'));
+  console.error(chalk.red('╚' + '═'.repeat(BOX_WIDTH - 2) + '╝'));
   console.error('\n');
 
-  // Registrar en el logger para tener el error completo en los logs
+  // Registrar usando el logger de NestJS para tener el registro completo
   logger.error({
     message: errorMessage,
     stack: error?.stack,
@@ -101,7 +157,7 @@ export function handleError(error: any, metadata: ErrorMetadata) {
     additionalInfo: metadata.additionalInfo
   });
 
-  // Devolver la excepción apropiada basada en el tipo de error
+  // Devolver la excepción apropiada
   if (error instanceof NotFoundException || statusCode === 404) {
     return error;
   }
@@ -122,7 +178,6 @@ export function handleError(error: any, metadata: ErrorMetadata) {
     return error;
   }
 
-  // Por defecto, lanzamos un error interno del servidor
   return new InternalServerErrorException(
     {
       message: errorMessage,
@@ -134,15 +189,4 @@ export function handleError(error: any, metadata: ErrorMetadata) {
   );
 }
 
-/**
- * Divide una cadena en trozos de tamaño específico
- */
-function chunkString(str: string, length: number): string[] {
-  const chunks = [];
-  let i = 0;
-  while (i < str.length) {
-    chunks.push(str.substring(i, i + length));
-    i += length;
-  }
-  return chunks;
-}
+

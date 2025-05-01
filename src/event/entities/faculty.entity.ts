@@ -25,7 +25,7 @@ export class Faculty {
         default: true,
         nullable: false,
     })
-    state: boolean;
+    is_active: boolean;
 
     @Column('timestamp', {
         nullable: false,

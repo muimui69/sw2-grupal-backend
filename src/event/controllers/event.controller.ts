@@ -13,11 +13,11 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { EventService } from '../services/event.service';
-import { CreateEventDto } from '../dto/create-event.dto';
-import { UpdateEventDto } from '../dto/update-event.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { AuthTenantGuard } from 'src/auth/guards/auth-tenant.guard';
 import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
+import { CreateEventDto } from '../dto/event/create-event.dto';
+import { UpdateEventDto } from '../dto/event/update-event.dto';
 
 @Controller('event')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)

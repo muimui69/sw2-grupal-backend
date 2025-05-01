@@ -31,8 +31,8 @@ export class SeedService {
 
   async seed(): Promise<ApiResponse<null>> {
     try {
-      // await this.seedSubscriptions();
-      // await this.seedConfigurations();
+      await this.seedSubscriptions();
+      await this.seedConfigurations();
       await this.seedRoles();
       await this.seedPermissions();
       return {
@@ -41,7 +41,14 @@ export class SeedService {
         data: null,
       }
     } catch (err) {
-      throw handleError(err, 'seed');
+      throw handleError(err, {
+        context: 'SeedService.seed',
+        action: 'seed',
+        entityName: 'Seed',
+        additionalInfo: {
+          message: 'Error al sembrar los datos',
+        }
+      });
     }
   }
 
@@ -65,7 +72,14 @@ export class SeedService {
         data: subscriptionsToSave,
       }
     } catch (err) {
-      throw handleError(err, 'seedSubscriptions');
+      throw handleError(err, {
+        context: 'SeedService.seedSubscriptions',
+        action: 'seed',
+        entityName: 'Subscription',
+        additionalInfo: {
+          message: 'Error al sembrar los planes de suscripción',
+        }
+      });
     }
   }
 
@@ -86,7 +100,14 @@ export class SeedService {
         data: configurationsToSave
       }
     } catch (err) {
-      throw handleError(err, 'seedConfigurations');
+      throw handleError(err, {
+        context: 'SeedService.seedConfigurations',
+        action: 'seed',
+        entityName: 'Configuration',
+        additionalInfo: {
+          message: 'Error al sembrar las configuraciones',
+        }
+      });
     }
   }
 
@@ -110,7 +131,14 @@ export class SeedService {
         data: rolesToSave,
       };
     } catch (error) {
-      throw handleError(error, 'seedRoles');
+      throw handleError(error, {
+        context: 'SeedService.seedRoles',
+        action: 'seed',
+        entityName: 'Role',
+        additionalInfo: {
+          message: 'Error al sembrar los roles',
+        }
+      });
     }
   }
 
@@ -135,7 +163,14 @@ export class SeedService {
         data: permissionsToSave
       };
     } catch (error) {
-      throw handleError(error, 'seedPermissions');
+      throw handleError(error, {
+        context: 'SeedService.seedPermissions',
+        action: 'seed',
+        entityName: 'Permission',
+        additionalInfo: {
+          message: 'Error al sembrar los permisos',
+        }
+      });
     }
   }
 

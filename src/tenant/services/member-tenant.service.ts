@@ -92,7 +92,11 @@ export class MemberTenantService {
             throw handleError(error, {
                 context: 'MemberTenantService.create',
                 action: 'create',
-                entityName: 'MemberTenant'
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    createMemberTenantDto,
+                    message: "Error al crear el miembro del tenant"
+                }
             });
         }
     }
@@ -157,7 +161,10 @@ export class MemberTenantService {
             throw handleError(error, {
                 context: 'MemberTenantService.findAll',
                 action: 'query',
-                entityName: 'MemberTenant'
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    message: "Error al obtener los miembros del tenant"
+                }
             });
         }
     }
@@ -192,7 +199,10 @@ export class MemberTenantService {
                 context: 'MemberTenantService.findOne',
                 action: 'query',
                 entityName: 'MemberTenant',
-                entityId: id
+                entityId: id,
+                additionalInfo: {
+                    message: "Error al obtener el miembro del tenant"
+                }
             });
         }
     }
@@ -265,7 +275,11 @@ export class MemberTenantService {
                 context: 'MemberTenantService.update',
                 action: 'update',
                 entityName: 'MemberTenant',
-                entityId: id
+                entityId: id,
+                additionalInfo: {
+                    updateMemberTenantDto,
+                    message: "Error al actualizar el miembro del tenant"
+                }
             });
         }
     }
@@ -312,7 +326,10 @@ export class MemberTenantService {
                 context: 'MemberTenantService.remove',
                 action: 'delete',
                 entityName: 'MemberTenant',
-                entityId: id
+                entityId: id,
+                additionalInfo: {
+                    message: "Error al eliminar el miembro del tenant"
+                }
             });
         }
     }
@@ -335,7 +352,10 @@ export class MemberTenantService {
             throw handleError(error, {
                 context: 'MemberTenantService.findByUserAndTenant',
                 action: 'query',
-                entityName: 'MemberTenant'
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    message: "Error al encontrar el miembro del tenant por usuario y tenant"
+                }
             });
         }
     }
@@ -359,7 +379,10 @@ export class MemberTenantService {
             throw handleError(error, {
                 context: 'MemberTenantService.checkUserRole',
                 action: 'query',
-                entityName: 'MemberTenant'
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    message: "Error al verificar el rol del usuario en el tenant"
+                }
             });
         }
     }
@@ -392,7 +415,10 @@ export class MemberTenantService {
             throw handleError(error, {
                 context: 'MemberTenantService.verifyResourceAccess',
                 action: 'query',
-                entityName: 'MemberTenant'
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    message: "Error al verificar el acceso al recurso del usuario en el tenant"
+                }
             });
         }
     }
@@ -426,7 +452,11 @@ export class MemberTenantService {
             throw handleError(error, {
                 context: 'MemberTenantService.verifyTenantPassword',
                 action: 'verify',
-                entityName: 'MemberTenant'
+                entityName: 'MemberTenant',
+                entityId: memberTenantId,
+                additionalInfo: {
+                    message: "Error al verificar la contraseña del tenant"
+                }
             });
         }
     }
@@ -458,7 +488,10 @@ export class MemberTenantService {
             throw handleError(error, {
                 context: 'MemberTenantService.getUserTenants',
                 action: 'query',
-                entityName: 'MemberTenant'
+                entityName: 'MemberTenant',
+                additionalInfo: {
+                    message: "Error al obtener los tenants del usuario"
+                }
             });
         }
     }
