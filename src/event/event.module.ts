@@ -10,6 +10,8 @@ import { EventController } from './controllers/event.controller';
 import { UserModule } from '../user/user.module';
 import { FacultyService } from './services/faculty.service';
 import { FacultyController } from './controllers/faculty.controller';
+import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { FacultyController } from './controllers/faculty.controller';
     ]),
     TenantModule,
     UserModule,
+    CloudinaryModule
   ],
   controllers: [
     EventController,
@@ -27,7 +30,8 @@ import { FacultyController } from './controllers/faculty.controller';
   ],
   providers: [
     EventService,
-    FacultyService
+    FacultyService,
+    CloudinaryService
   ],
   exports: [
     EventService,

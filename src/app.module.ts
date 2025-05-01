@@ -14,6 +14,8 @@ import { UserModule } from './user/user.module';
 import { TicketPurchase } from './payment/entities/ticket-purchase.entity';
 import { Ticket } from './event/entities/ticket.entity';
 import { AuditModule } from './audit/audit.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CommonModule } from './common/common.module';
 
 
 @Module({
@@ -49,6 +51,8 @@ import { AuditModule } from './audit/audit.module';
     TicketPurchase,
     Ticket,
     AuditModule,
+    CloudinaryModule,
+    CommonModule
   ],
   // providers: [
   //   LogsService,

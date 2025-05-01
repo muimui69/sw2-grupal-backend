@@ -24,7 +24,7 @@ export class Event {
     description: string;
 
     @Column('text', {
-        nullable: false,
+        nullable: true,
     })
     image_url: string;
 

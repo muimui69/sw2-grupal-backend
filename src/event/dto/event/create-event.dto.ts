@@ -12,8 +12,7 @@ export class CreateEventDto {
     // @IsNotEmpty()
     @IsOptional()
     @IsString()
-    image_url: string;
-    // file: File | string;
+    file: Express.Multer.File;
 
     @IsNotEmpty()
     @IsDateString()

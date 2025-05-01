@@ -10,6 +10,8 @@ import { handleError } from 'src/common/helpers/function-helper';
 import { MemberTenantService } from 'src/tenant/services/member-tenant.service';
 import { CreateEventDto } from '../dto/event/create-event.dto';
 import { UpdateEventDto } from '../dto/event/update-event.dto';
+import { validateImage } from 'src/utils/image-validator.util';
+import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
 
 @Injectable()
 export class EventService {
@@ -18,6 +20,7 @@ export class EventService {
     private readonly eventRepository: Repository<Event>,
     private readonly memberTenantService: MemberTenantService,
     private readonly auditService: AuditService,
+    private readonly cloudinaryService: CloudinaryService
   ) { }
 
   async findAll(userId: string, memberTenantId: string, paginationDto: PaginationDto): Promise<ApiResponse<Event[]>> {
@@ -130,9 +133,11 @@ export class EventService {
     }
   }
 
-  async create(createEventDto: CreateEventDto, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
+  async create(createEventDto: CreateEventDto, userId: string, memberTenantId: string): Promise<ApiResponse<any>> {
     try {
-      const { facultyId, ...eventDetails } = createEventDto;
+      const { facultyId, file, ...eventDetails } = createEventDto;
+
+      const imageUrl = await this.processFile(file);
 
       if (new Date(createEventDto.start_date) > new Date(createEventDto.end_date)) {
         throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');
@@ -146,6 +151,7 @@ export class EventService {
         ...eventDetails,
         tenantId: existMembertenant.data.id,
         faculty: facultyId ? { id: facultyId } : null,
+        image_url: imageUrl || null,
       });
 
       const savedEvent = await this.eventRepository.save(newEvent);
@@ -159,8 +165,7 @@ export class EventService {
         null,
         savedEvent
       );
-
-      return createApiResponse(HttpStatus.CREATED, savedEvent, 'Evento creado correctamente');
+      return createApiResponse(HttpStatus.CREATED, eventDetails, 'Evento creado correctamente');
     } catch (error) {
       throw handleError(error, {
         context: 'EventService.create',
@@ -426,5 +431,19 @@ export class EventService {
         }
       });
     }
+  }
+
+
+  /**
+   * Procesa un archivo opcional en el servicio
+   */
+  private async processFile(file?: Express.Multer.File): Promise<string | null> {
+    if (!file) return null;
+
+    const { isValid, error } = await validateImage(file);
+    if (!isValid) throw new BadRequestException(error);
+
+    const result = await this.cloudinaryService.uploadImage(file);
+    return result.secure_url;
   }
 }

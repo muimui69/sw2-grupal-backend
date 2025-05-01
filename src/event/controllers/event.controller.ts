@@ -9,7 +9,9 @@ import {
   UseGuards,
   Query,
   Req,
-  ParseUUIDPipe
+  ParseUUIDPipe,
+  UseInterceptors,
+  UploadedFile
 } from '@nestjs/common';
 import { Request } from 'express';
 import { EventService } from '../services/event.service';
@@ -18,6 +20,8 @@ import { AuthTenantGuard } from 'src/auth/guards/auth-tenant.guard';
 import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
 import { CreateEventDto } from '../dto/event/create-event.dto';
 import { UpdateEventDto } from '../dto/event/update-event.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
 
 @Controller('event')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -41,11 +45,13 @@ export class EventController {
   }
 
   @Post()
+  @UseInterceptors(FileInterceptor('file'))
   create(
     @Body() createEventDto: CreateEventDto,
-    @Req() req: Request
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File
   ) {
-    return this.eventService.create(createEventDto, req.userId, req.memberTenantId);
+    return this.eventService.create({ ...createEventDto, file }, req.userId, req.memberTenantId);
   }
 
   @Patch(':id')
