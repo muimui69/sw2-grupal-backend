@@ -41,7 +41,7 @@ export class Faculty {
 
     //? RELATIONS
     @OneToMany(() => Event, event => event.faculty)
-    events: Event[];
+    event: Event[];
 
     @ManyToOne(() => Tenant)
     @JoinColumn({ name: 'tenantId' })

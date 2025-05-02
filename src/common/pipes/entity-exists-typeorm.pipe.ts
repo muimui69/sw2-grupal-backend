@@ -2,7 +2,6 @@ import {
     PipeTransform,
     Injectable,
     NotFoundException,
-    Provider,
 } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { validate as validateUuid } from 'uuid';
@@ -54,20 +53,13 @@ export class EntityExistsTypeOrmPipe implements PipeTransform {
         }
 
         // Opcional: devolver la entidad en lugar del ID
-        return entity;
+        return {
+            value,
+            entity
+        };
 
         // O simplemente devolver el ID validado
         // return value;
     }
 }
 
-
-export function createEntityExistsPipe(options: EntityExistsOptions): Provider {
-    return {
-        provide: `${options.entity.name}ExistsPipe`,
-        useFactory: (moduleRef: ModuleRef) => {
-            return new EntityExistsTypeOrmPipe(moduleRef, options);
-        },
-        inject: [ModuleRef]
-    };
-}

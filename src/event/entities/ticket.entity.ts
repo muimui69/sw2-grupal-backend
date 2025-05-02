@@ -51,8 +51,8 @@ export class Ticket {
     @OneToMany(() => TicketPurchase, ticketPurchase => ticketPurchase.ticket)
     ticketPurchases: TicketPurchase[];
 
-    @ManyToOne(() => Tenant)
-    @JoinColumn({ name: 'tenantId' })
+    @ManyToOne(() => Tenant, tenant => tenant.ticket)
+    @JoinColumn()
     tenant: Tenant;
     //?
 }

@@ -63,6 +63,10 @@ export function handleError(error: any, metadata: ErrorMetadata) {
     const lines = [];
     let remainingText = text;
 
+    if (typeof remainingText !== 'string') {
+      remainingText = String(remainingText || ''); // Convertir a string o usar cadena vacía
+    }
+
     // Primera línea con el prefijo/etiqueta
     lines.push(prefix + chalk.white(remainingText.substring(0, maxContentWidth).padEnd(maxContentWidth)));
     remainingText = remainingText.substring(maxContentWidth);

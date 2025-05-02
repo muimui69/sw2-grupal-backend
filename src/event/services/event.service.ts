@@ -12,6 +12,7 @@ import { CreateEventDto } from '../dto/event/create-event.dto';
 import { UpdateEventDto } from '../dto/event/update-event.dto';
 import { validateImage } from 'src/utils/image-validator.util';
 import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
+import { Faculty } from '../entities/faculty.entity';
 
 @Injectable()
 export class EventService {
@@ -133,11 +134,10 @@ export class EventService {
     }
   }
 
-  async create(createEventDto: CreateEventDto, userId: string, memberTenantId: string): Promise<ApiResponse<any>> {
+  async create(createEventDto: CreateEventDto & { faculty: Faculty }, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { facultyId, file, ...eventDetails } = createEventDto;
-
-      const imageUrl = await this.processFile(file);
 
       if (new Date(createEventDto.start_date) > new Date(createEventDto.end_date)) {
         throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');
@@ -147,10 +147,12 @@ export class EventService {
       if (!existMembertenant)
         throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
 
+      const imageUrl = await this.processFile(file);
+
       const newEvent = this.eventRepository.create({
         ...eventDetails,
         tenantId: existMembertenant.data.id,
-        faculty: facultyId ? { id: facultyId } : null,
+        tenant: existMembertenant.data.tenant,
         image_url: imageUrl || null,
       });
 
@@ -165,27 +167,27 @@ export class EventService {
         null,
         savedEvent
       );
-      return createApiResponse(HttpStatus.CREATED, eventDetails, 'Evento creado correctamente');
+      return createApiResponse(HttpStatus.CREATED, savedEvent, 'Evento creado correctamente');
     } catch (error) {
       throw handleError(error, {
         context: 'EventService.create',
         action: 'create',
         entityName: 'Event',
         additionalInfo: {
-          dto: createEventDto,
+          dto: { ...createEventDto, file: undefined, facultyId: undefined },
           message: 'Error al crear evento',
         }
       });
     }
   }
 
-  async patch(id: string, updateEventDto: UpdateEventDto, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
+  async patch(id: string, updateEventDto: UpdateEventDto & { faculty?: Faculty }, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
     try {
       const existMembertenant = await this.memberTenantService.findOne(memberTenantId, userId);
       if (!existMembertenant)
         throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
 
-      const event = await this.eventRepository.findOne({
+      const findEvent = await this.eventRepository.findOne({
         where: {
           id,
           tenantId: existMembertenant.data.tenantId
@@ -193,7 +195,7 @@ export class EventService {
         relations: ['faculty']
       });
 
-      if (!event) {
+      if (!findEvent) {
         throw new NotFoundException(`Evento con ID ${id} no encontrado`);
       }
 
@@ -202,26 +204,41 @@ export class EventService {
           throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');
         }
       } else if (updateEventDto.start_date && !updateEventDto.end_date) {
-        if (new Date(updateEventDto.start_date) > new Date(event.end_date)) {
+        if (new Date(updateEventDto.start_date) > new Date(findEvent.end_date)) {
           throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');
         }
       } else if (!updateEventDto.start_date && updateEventDto.end_date) {
-        if (new Date(event.start_date) > new Date(updateEventDto.end_date)) {
+        if (new Date(findEvent.start_date) > new Date(updateEventDto.end_date)) {
           throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');
         }
       }
 
-      const { facultyId, ...eventDetails } = updateEventDto;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { faculty: newFaculty, facultyId, file, ...eventDetails } = updateEventDto;
 
-      const oldValues = { ...event };
+      let imageUrl = null;
+      if (file) {
+        imageUrl = await this.processFile(file);
+      }
 
-      await this.eventRepository.update(id, {
+      const oldValues = { ...findEvent };
+
+      const event = await this.eventRepository.preload({
+        id,
+        tenantId: existMembertenant.data.tenantId,
         ...eventDetails,
-        faculty: facultyId ? { id: facultyId } : event.faculty,
+        ...(file ? { image_url: imageUrl } : {}),
+        ...(newFaculty ? { faculty: newFaculty } : {}),
         updated_at: new Date()
       });
 
-      const updatedEvent = await this.eventRepository.findOne({
+      if (!event) {
+        throw new NotFoundException(`Evento con ID ${id} no encontrado`);
+      }
+
+      await this.eventRepository.save(event);
+
+      const findUpdatedEvent = await this.eventRepository.findOne({
         where: { id },
         relations: ['faculty', 'sections']
       });
@@ -233,10 +250,10 @@ export class EventService {
         existMembertenant.data.user.id,
         existMembertenant.data.tenant.id,
         oldValues,
-        updatedEvent
+        findUpdatedEvent
       );
 
-      return createApiResponse(HttpStatus.OK, updatedEvent, 'Evento actualizado correctamente');
+      return createApiResponse(HttpStatus.OK, findUpdatedEvent, 'Evento actualizado correctamente');
     } catch (error) {
       throw handleError(error, {
         context: 'EventService.update',

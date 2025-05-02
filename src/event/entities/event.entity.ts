@@ -62,7 +62,7 @@ export class Event {
     updated_at: Date;
 
     //?RELATIONS
-    @ManyToOne(() => Faculty, faculty => faculty.events)
+    @ManyToOne(() => Faculty, faculty => faculty.event)
     faculty: Faculty;
 
     @OneToMany(() => Section, section => section.event)
@@ -71,8 +71,8 @@ export class Event {
     @OneToMany(() => IdentityVerification, iv => iv.event)
     identityVerifications: IdentityVerification[];
 
-    @ManyToOne(() => Tenant)
-    @JoinColumn({ name: 'tenantId' })
+    @ManyToOne(() => Tenant, tenant => tenant.event)
+    @JoinColumn()
     tenant: Tenant;
     //?
 }

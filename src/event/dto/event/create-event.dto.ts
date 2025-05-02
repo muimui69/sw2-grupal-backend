@@ -2,6 +2,10 @@ import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID } fro
 
 export class CreateEventDto {
     @IsNotEmpty()
+    @IsUUID()
+    facultyId: string;
+
+    @IsNotEmpty()
     @IsString()
     title: string;
 
@@ -9,7 +13,6 @@ export class CreateEventDto {
     @IsString()
     description?: string;
 
-    // @IsNotEmpty()
     @IsOptional()
     @IsString()
     file: Express.Multer.File;
@@ -29,8 +32,4 @@ export class CreateEventDto {
     @IsOptional()
     @IsBoolean()
     is_active?: boolean;
-
-    @IsOptional()
-    @IsUUID()
-    facultyId?: string;
 }

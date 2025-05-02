@@ -12,6 +12,8 @@ import { FacultyService } from './services/faculty.service';
 import { FacultyController } from './controllers/faculty.controller';
 import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { SectionController } from './controllers/section.controller';
+import { SectionService } from './services/section.service';
 
 @Module({
   imports: [
@@ -26,11 +28,13 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
   ],
   controllers: [
     EventController,
-    FacultyController
+    FacultyController,
+    SectionController
   ],
   providers: [
     EventService,
     FacultyService,
+    SectionService,
     CloudinaryService
   ],
   exports: [

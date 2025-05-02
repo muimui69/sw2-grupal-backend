@@ -22,6 +22,10 @@ import { CreateEventDto } from '../dto/event/create-event.dto';
 import { UpdateEventDto } from '../dto/event/update-event.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { FacultyExistsPipe } from 'src/common/pipes/entity-exists.pipe';
+import { Faculty } from '../entities/faculty.entity';
+import { IOptionPipe } from '../interfaces/params/option.pipe';
+import { OptionalFieldPipe } from 'src/common/pipes/optional-field.pipe';
 
 @Controller('event')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -48,19 +52,23 @@ export class EventController {
   @UseInterceptors(FileInterceptor('file'))
   create(
     @Body() createEventDto: CreateEventDto,
+    @Body('facultyId', FacultyExistsPipe) facultyResult: IOptionPipe<Faculty>,
     @Req() req: Request,
-    @UploadedFile() file: Express.Multer.File
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.eventService.create({ ...createEventDto, file }, req.userId, req.memberTenantId);
+    return this.eventService.create({ ...createEventDto, file, faculty: facultyResult.entity }, req.userId, req.memberTenantId);
   }
 
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('file'))
   patch(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateEventDto: UpdateEventDto,
-    @Req() req: Request
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('facultyId', new OptionalFieldPipe(FacultyExistsPipe)) facultyResult?: IOptionPipe<Faculty>,
   ) {
-    return this.eventService.patch(id, updateEventDto, req.userId, req.memberTenantId);
+    return this.eventService.patch(id, { ...updateEventDto, file, ...(facultyResult ? { faculty: facultyResult.entity } : {}) }, req.userId, req.memberTenantId);
   }
 
   @Delete(':id')

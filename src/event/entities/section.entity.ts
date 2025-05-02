@@ -18,9 +18,15 @@ export class Section {
     name: string;
 
     @Column('text', {
-        nullable: false,
+        nullable: true,
     })
     description: string;
+
+    @Column('int', {
+        nullable: false,
+        default: 0,
+    })
+    capacity: number;
 
     @Column('decimal', {
         precision: 10,
@@ -29,18 +35,18 @@ export class Section {
     })
     price: number;
 
-    @Column('decimal', {
-        precision: 10,
-        scale: 2,
-        nullable: false,
-    })
-    total_quantity: number;
+    // @Column('decimal', {
+    //     precision: 10,
+    //     scale: 2,
+    //     nullable: false,
+    // })
+    // total_quantity: number;
 
     @Column('bool', {
         default: true,
         nullable: false,
     })
-    state: boolean;
+    is_active: boolean;
 
     @Column('timestamp', {
         nullable: false,
@@ -61,8 +67,8 @@ export class Section {
     @OneToMany(() => Ticket, ticket => ticket.section)
     tickets: Ticket[];
 
-    @ManyToOne(() => Tenant)
-    @JoinColumn({ name: 'tenantId' })
+    @ManyToOne(() => Tenant, tenant => tenant.event)
+    @JoinColumn()
     tenant: Tenant;
     //?
 }
