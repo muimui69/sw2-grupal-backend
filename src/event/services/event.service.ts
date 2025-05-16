@@ -19,6 +19,8 @@ export class EventService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
+    @InjectRepository(Faculty)
+    private readonly facultyRepository: Repository<Faculty>,
     private readonly memberTenantService: MemberTenantService,
     private readonly auditService: AuditService,
     private readonly cloudinaryService: CloudinaryService
@@ -181,16 +183,18 @@ export class EventService {
     }
   }
 
-  async patch(id: string, updateEventDto: UpdateEventDto & { faculty?: Faculty }, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
+  async patch(id: string, updateEventDto: UpdateEventDto, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
     try {
       const existMembertenant = await this.memberTenantService.findOne(memberTenantId, userId);
       if (!existMembertenant)
         throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
 
+      const tenantId = existMembertenant.data.tenantId;
+
       const findEvent = await this.eventRepository.findOne({
         where: {
           id,
-          tenantId: existMembertenant.data.tenantId
+          tenantId
         },
         relations: ['faculty']
       });
@@ -199,6 +203,7 @@ export class EventService {
         throw new NotFoundException(`Evento con ID ${id} no encontrado`);
       }
 
+      // Validación de fechas (mantenida igual)
       if (updateEventDto.start_date && updateEventDto.end_date) {
         if (new Date(updateEventDto.start_date) > new Date(updateEventDto.end_date)) {
           throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');
@@ -213,9 +218,26 @@ export class EventService {
         }
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { faculty: newFaculty, facultyId, file, ...eventDetails } = updateEventDto;
+      // NUEVO: Manejo de facultyId opcional
+      let faculty = undefined;
 
+      if (updateEventDto.facultyId) {
+        faculty = await this.facultyRepository.findOne({
+          where: {
+            id: updateEventDto.facultyId,
+            tenantId
+          }
+        });
+
+        if (!faculty) {
+          throw new BadRequestException(`Facultad con ID ${updateEventDto.facultyId} no encontrada o no pertenece a este inquilino`);
+        }
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { facultyId, file, ...eventDetails } = updateEventDto;
+
+      // Procesar archivo si está presente
       let imageUrl = null;
       if (file) {
         imageUrl = await this.processFile(file);
@@ -223,12 +245,13 @@ export class EventService {
 
       const oldValues = { ...findEvent };
 
+      // Precargar entidad con cambios
       const event = await this.eventRepository.preload({
         id,
-        tenantId: existMembertenant.data.tenantId,
+        tenantId,
         ...eventDetails,
         ...(file ? { image_url: imageUrl } : {}),
-        ...(newFaculty ? { faculty: newFaculty } : {}),
+        ...(faculty ? { faculty } : {}),
         updated_at: new Date()
       });
 
@@ -256,7 +279,7 @@ export class EventService {
       return createApiResponse(HttpStatus.OK, findUpdatedEvent, 'Evento actualizado correctamente');
     } catch (error) {
       throw handleError(error, {
-        context: 'EventService.update',
+        context: 'EventService.patch',
         action: 'update',
         entityName: 'Event',
         entityId: id,

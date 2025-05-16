@@ -21,7 +21,6 @@ import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
 import { EventExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Event } from '../entities/event.entity';
 import { IOptionPipe } from '../interfaces/params/option.pipe';
-import { OptionalFieldPipe } from 'src/common/pipes/optional-field.pipe';
 
 @Controller('section')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -71,9 +70,8 @@ export class SectionController {
         @Param('id', ParseUUIDPipe) id: string,
         @Body() updateSectionDto: UpdateSectionDto,
         @Req() req: Request,
-        @Body('eventId', new OptionalFieldPipe(EventExistsPipe)) eventResult?: IOptionPipe<Event>,
     ) {
-        return this.sectionService.patch(id, { ...updateSectionDto, ...(eventResult ? { event: eventResult.entity } : {}) }, req.userId, req.memberTenantId);
+        return this.sectionService.patch(id, updateSectionDto, req.userId, req.memberTenantId);
     }
 
     @Delete(':id')

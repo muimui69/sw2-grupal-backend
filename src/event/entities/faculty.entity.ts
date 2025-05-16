@@ -13,6 +13,7 @@ export class Faculty {
 
     @Column('text', {
         nullable: false,
+        // unique: true,
     })
     name: string;
 

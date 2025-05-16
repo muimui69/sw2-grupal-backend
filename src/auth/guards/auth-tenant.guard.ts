@@ -31,6 +31,7 @@ export class AuthTenantGuard implements CanActivate {
         }
 
         req.memberTenantId = findMemberTenant.id;
+        req.nameTenant = findMemberTenant.tenant.name;
         return true;
     }
 }

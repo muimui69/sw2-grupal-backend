@@ -4,5 +4,6 @@ declare namespace Express {
         roleId: number;
         tenantId: string;
         memberTenantId: string;
+        nameTenant: string;
     }
 }

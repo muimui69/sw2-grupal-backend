@@ -277,12 +277,16 @@ export class SectionService {
         }
     }
 
-    async patch(id: string, updateSectionDto: UpdateSectionDto & { event?: Event }, userId: string, memberTenantId: string): Promise<ApiResponse<Section>> {
+    async patch(id: string, updateSectionDto: UpdateSectionDto, userId: string, memberTenantId: string): Promise<ApiResponse<Section>> {
         try {
+            // Verificar memberTenant
             const existMembertenant = await this.memberTenantService.findOne(memberTenantId, userId);
             if (!existMembertenant)
                 throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
 
+            const tenantId = existMembertenant.data.tenantId;
+
+            // Buscar la sección actual
             const findSection = await this.sectionRepository.findOne({
                 where: { id, is_active: true },
                 relations: ['event']
@@ -292,10 +296,11 @@ export class SectionService {
                 throw new NotFoundException(`Sección con ID ${id} no encontrada`);
             }
 
+            // Verificar que el evento pertenece al tenant
             const event = await this.eventRepository.findOne({
                 where: {
                     id: findSection.event.id,
-                    tenantId: existMembertenant.data.tenantId
+                    tenantId
                 }
             });
 
@@ -303,32 +308,45 @@ export class SectionService {
                 throw new NotFoundException(`Sección con ID ${id} no accesible para este inquilino`);
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { event: newEvent, eventId, ...sectionDetails } = updateSectionDto;
-
+            // Verificar evento nuevo si se proporciona eventId
             let targetEvent = event;
-            if (newEvent) {
-                if (newEvent.tenantId !== existMembertenant.data.tenantId) {
-                    throw new BadRequestException('No tienes permiso para asignar secciones a este evento');
+            if (updateSectionDto.eventId) {
+                const newEvent = await this.eventRepository.findOne({
+                    where: {
+                        id: updateSectionDto.eventId,
+                        tenantId
+                    }
+                });
+
+                if (!newEvent) {
+                    throw new BadRequestException(`Evento con ID ${updateSectionDto.eventId} no encontrado o no pertenece a este inquilino`);
                 }
+
                 targetEvent = newEvent;
             }
 
-            if (sectionDetails.capacity !== undefined && sectionDetails.capacity < 0) {
+            // Validaciones de los campos de la sección
+            if (updateSectionDto.capacity !== undefined && updateSectionDto.capacity < 0) {
                 throw new BadRequestException('La capacidad no puede ser negativa');
             }
 
-            if (sectionDetails.price !== undefined && sectionDetails.price < 0) {
+            if (updateSectionDto.price !== undefined && updateSectionDto.price < 0) {
                 throw new BadRequestException('El precio no puede ser negativo');
             }
 
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { eventId, ...sectionDetails } = updateSectionDto;
+
+            // Guardar valores antiguos para auditoría
             const oldValues = { ...findSection };
 
+            // Precargar la entidad con los cambios
             const section = await this.sectionRepository.preload({
                 id,
-                tenantId: existMembertenant.data.tenantId,
+                tenantId,
                 ...sectionDetails,
-                ...(newEvent ? { event: newEvent } : {}),
+                ...(targetEvent !== event ? { event: targetEvent } : {}),
                 updated_at: new Date()
             });
 
@@ -338,11 +356,13 @@ export class SectionService {
 
             await this.sectionRepository.save(section);
 
+            // Recuperar la sección actualizada con relaciones
             const findUpdatedSection = await this.sectionRepository.findOne({
                 where: { id },
                 relations: ['event', 'tickets']
             });
 
+            // Registrar acción de auditoría
             await this.auditService.logAction(
                 ActionType.UPDATE,
                 'Section',
@@ -361,7 +381,7 @@ export class SectionService {
                 entityName: 'Section',
                 entityId: id,
                 additionalInfo: {
-                    dto: { ...updateSectionDto, event: undefined, eventId: undefined },
+                    dto: updateSectionDto,
                     message: 'Error al actualizar sección',
                 }
             });

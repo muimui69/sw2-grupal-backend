@@ -25,12 +25,14 @@ import { Express } from 'express';
 import { FacultyExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Faculty } from '../entities/faculty.entity';
 import { IOptionPipe } from '../interfaces/params/option.pipe';
-import { OptionalFieldPipe } from 'src/common/pipes/optional-field.pipe';
 
 @Controller('event')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
 export class EventController {
-  constructor(private readonly eventService: EventService) { }
+  constructor(
+    private readonly eventService: EventService,
+  ) {
+  }
 
   @Get()
   findAll(
@@ -66,9 +68,8 @@ export class EventController {
     @Body() updateEventDto: UpdateEventDto,
     @Req() req: Request,
     @UploadedFile() file: Express.Multer.File,
-    @Body('facultyId', new OptionalFieldPipe(FacultyExistsPipe)) facultyResult?: IOptionPipe<Faculty>,
   ) {
-    return this.eventService.patch(id, { ...updateEventDto, file, ...(facultyResult ? { faculty: facultyResult.entity } : {}) }, req.userId, req.memberTenantId);
+    return this.eventService.patch(id, { ...updateEventDto, file }, req.userId, req.memberTenantId);
   }
 
   @Delete(':id')

@@ -197,29 +197,39 @@ export class FacultyService {
             const tenantId = existMembertenant.data.tenantId;
 
             // Buscar la facultad a actualizar
-            const faculty = await this.facultyRepository.findOne({
+            const currentFaculty = await this.facultyRepository.findOne({
                 where: {
                     id,
                     tenantId
                 }
             });
 
-            if (!faculty) {
+            if (!currentFaculty) {
                 throw new NotFoundException(`Facultad con ID ${id} no encontrada`);
             }
 
             // Guardar valores anteriores para auditoría
-            const oldValues = { ...faculty };
+            const oldValues = { ...currentFaculty };
 
-            // Actualizar la facultad
-            await this.facultyRepository.update(id, {
+            // Precargar la entidad con los valores actualizados
+            const faculty = await this.facultyRepository.preload({
+                id,
+                tenantId,
                 ...updateFacultyDto,
                 updated_at: new Date()
             });
 
-            // Obtener la facultad actualizada
+            if (!faculty) {
+                throw new NotFoundException(`Facultad con ID ${id} no encontrada`);
+            }
+
+            // Guardar la facultad actualizada
+            await this.facultyRepository.save(faculty);
+
+            // Obtener la facultad actualizada con todas sus relaciones si es necesario
             const updatedFaculty = await this.facultyRepository.findOne({
-                where: { id }
+                where: { id },
+                relations: ['events'] // Añade aquí las relaciones que necesites
             });
 
             // Registrar la acción en el log de auditoría
@@ -236,7 +246,7 @@ export class FacultyService {
             return createApiResponse(HttpStatus.OK, updatedFaculty, 'Facultad actualizada correctamente');
         } catch (error) {
             throw handleError(error, {
-                context: 'FacultyService.update',
+                context: 'FacultyService.patch',
                 action: 'update',
                 entityName: 'Faculty',
                 entityId: id,

@@ -14,13 +14,17 @@ import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { SectionController } from './controllers/section.controller';
 import { SectionService } from './services/section.service';
+import { TicketController } from './controllers/ticket.controller';
+import { TicketService } from './services/ticket.service';
+import { Ticket } from './entities/ticket.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Event,
       Section,
-      Faculty
+      Faculty,
+      Ticket
     ]),
     TenantModule,
     UserModule,
@@ -29,12 +33,14 @@ import { SectionService } from './services/section.service';
   controllers: [
     EventController,
     FacultyController,
-    SectionController
+    SectionController,
+    TicketController
   ],
   providers: [
     EventService,
     FacultyService,
     SectionService,
+    TicketService,
     CloudinaryService
   ],
   exports: [

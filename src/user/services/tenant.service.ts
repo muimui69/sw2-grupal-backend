@@ -14,9 +14,9 @@ export class TenantService {
     constructor(
         @InjectRepository(MemberTenant)
         private readonly memberTenantRepository: Repository<MemberTenant>,
-
         private readonly jwtService: JwtService
     ) { }
+
     async getAllTenants({
         skip,
         take,
@@ -85,6 +85,7 @@ export class TenantService {
 
                 const payload: JwtPayloadMemberTenant = {
                     memberTenantId: memberTenant.id,
+                    nameTenant: memberTenant.tenant.name,
                 };
 
                 const token = this.getToken(payload);

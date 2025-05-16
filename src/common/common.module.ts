@@ -16,11 +16,9 @@ import {
     TicketPurchaseExistsPipe,
     UserExistsPipe
 } from './pipes/entity-exists.pipe';
-import { OptionalFieldPipe } from './pipes/optional-field.pipe';
 
 @Module({
     providers: [
-        OptionalFieldPipe,
         UserExistsPipe,
         RoleExistsPipe,
         PermissionExistsPipe,
@@ -38,7 +36,6 @@ import { OptionalFieldPipe } from './pipes/optional-field.pipe';
         SubscriptionExistsPipe
     ],
     exports: [
-        OptionalFieldPipe,
         UserExistsPipe,
         RoleExistsPipe,
         PermissionExistsPipe,
