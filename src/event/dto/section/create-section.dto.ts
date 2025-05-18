@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateSectionDto {
     @IsNotEmpty()
@@ -23,7 +23,4 @@ export class CreateSectionDto {
     @Min(0)
     price: number;
 
-    @IsOptional()
-    @IsBoolean()
-    is_active?: boolean;
 }

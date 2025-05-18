@@ -22,6 +22,8 @@ import { SectionExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Section } from '../entities/section.entity';
 import { IOptionPipe } from '../interfaces/params/option.pipe';
 import { TicketExistsPipe } from 'src/common/pipes/entity-exists.pipe';
+import { UpdateTicketPriceDto } from '../dto/ticket/update-price-ticket.dto';
+import { BulkUpdateTicketPriceDto } from '../dto/ticket/bulk-update-price.dto';
 
 @Controller('ticket')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -47,7 +49,7 @@ export class TicketController {
 
     @Get(':id')
     findOne(
-        @Param('id', TicketExistsPipe) id: string,
+        @Param('id', ParseUUIDPipe) id: string,
         @Req() req: Request
     ) {
         return this.ticketService.findOne(id, req.userId, req.memberTenantId);
@@ -87,6 +89,53 @@ export class TicketController {
         @Req() req: Request
     ) {
         return this.ticketService.remove(id, req.userId, req.memberTenantId);
+    }
+
+    @Get(':id/validate')
+    validateTicket(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Req() req: Request
+    ) {
+        return this.ticketService.validateTicket(id, req.userId, req.memberTenantId);
+    }
+
+    @Patch(':id/price')
+    updateTicketPrice(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateTicketPriceDto: UpdateTicketPriceDto,
+        @Req() req: Request
+    ) {
+        return this.ticketService.updateTicketPrice(
+            id,
+            updateTicketPriceDto,
+            req.userId,
+            req.memberTenantId
+        );
+    }
+
+    @Post('bulk/price-update')
+    updateBulkTicketPrices(
+        @Body() bulkUpdateDto: BulkUpdateTicketPriceDto,
+        @Req() req: Request
+    ) {
+        return this.ticketService.updateBulkTicketPrices(
+            bulkUpdateDto,
+            req.userId,
+            req.memberTenantId
+        );
+    }
+
+    @Post('bulk/restore-prices')
+    restoreOriginalPrices(
+        @Body() { ticketIds, sectionId }: { ticketIds?: string[], sectionId?: string },
+        @Req() req: Request
+    ) {
+        return this.ticketService.restoreOriginalPrices(
+            ticketIds,
+            sectionId,
+            req.userId,
+            req.memberTenantId
+        );
     }
 
     @Get('statistics/tenant')

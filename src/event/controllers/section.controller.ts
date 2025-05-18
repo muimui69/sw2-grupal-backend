@@ -9,7 +9,8 @@ import {
     UseGuards,
     Query,
     Req,
-    ParseUUIDPipe
+    ParseUUIDPipe,
+    ParseIntPipe
 } from '@nestjs/common';
 import { Request } from 'express';
 import { SectionService } from '../services/section.service';
@@ -21,6 +22,7 @@ import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
 import { EventExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Event } from '../entities/event.entity';
 import { IOptionPipe } from '../interfaces/params/option.pipe';
+import { UpdateTicketPriceDto } from '../dto/ticket/update-price-ticket.dto';
 
 @Controller('section')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -88,5 +90,23 @@ export class SectionController {
         @Req() req: Request
     ) {
         return this.sectionService.getSectionStatistics(eventId, req.userId, req.memberTenantId);
+    }
+
+    @Patch(':id/tickets/price')
+    updateTicketPrices(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() updateTicketPriceDto: UpdateTicketPriceDto,
+        @Req() req: Request
+    ) {
+        return this.sectionService.updateTicketPrices(id, updateTicketPriceDto, req.userId, req.memberTenantId);
+    }
+
+    @Post(':id/tickets')
+    createTickets(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Query('quantity', ParseIntPipe) quantity: number,
+        @Req() req: Request
+    ) {
+        return this.sectionService.createTickets(id, quantity, req.userId, req.memberTenantId);
     }
 }

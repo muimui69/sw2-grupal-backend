@@ -29,7 +29,7 @@ export function createApiResponse<T>(
         message,
         errors,
         metadata: {
-            timestamp: new Date().toISOString(),
+            timestamp: new Date().toLocaleString("en-US", { timeZone: "America/La_Paz" }),
             version: process.env.API_VERSION || '1.0'
         }
     };

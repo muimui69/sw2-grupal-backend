@@ -1,3 +1,4 @@
+import { PriceModificationType } from 'src/common/enums/price-modification-type-enum/price-modification-type.enum';
 import { Section } from "src/event/entities/section.entity";
 import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
 import { Tenant } from 'src/tenant/entities/tenant.entity';
@@ -24,11 +25,38 @@ export class Ticket {
     })
     price: number;
 
+    @Column('decimal', {
+        precision: 10,
+        scale: 2,
+        nullable: true,
+        name: 'original_price'
+    })
+    originalPrice: number;
+
+    @Column({
+        type: 'enum',
+        enum: PriceModificationType,
+        nullable: true
+    })
+    modificationType: PriceModificationType;
+
+    @Column('timestamp', {
+        nullable: true,
+        name: 'valid_from'
+    })
+    validFrom: Date;
+
+    @Column('timestamp', {
+        nullable: true,
+        name: 'valid_until'
+    })
+    validUntil: Date;
+
     @Column('bool', {
         default: true,
         nullable: false,
     })
-    state: boolean;
+    is_active: boolean;
 
     @Column('timestamp', {
         nullable: false,
@@ -46,13 +74,10 @@ export class Ticket {
     @ManyToOne(() => Section, section => section.tickets)
     section: Section;
 
-    // @OneToMany(() => TicketPurchase, tp => tp.ticket)
-    // ticketPurchases: TicketPurchase[];
     @OneToMany(() => TicketPurchase, ticketPurchase => ticketPurchase.ticket)
     ticketPurchases: TicketPurchase[];
 
     @ManyToOne(() => Tenant, tenant => tenant.ticket)
     @JoinColumn()
     tenant: Tenant;
-    //?
 }
