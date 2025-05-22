@@ -11,7 +11,7 @@ import {
   Req,
   ParseUUIDPipe,
   UseInterceptors,
-  UploadedFile
+  UploadedFiles,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { EventService } from '../services/event.service';
@@ -20,11 +20,10 @@ import { AuthTenantGuard } from 'src/auth/guards/auth-tenant.guard';
 import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
 import { CreateEventDto } from '../dto/event/create-event.dto';
 import { UpdateEventDto } from '../dto/event/update-event.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { FacultyExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Faculty } from '../entities/faculty.entity';
-import { IOptionPipe } from '../interfaces/params/option.pipe';
+import { IOptionPipe } from '../interfaces/option.pipe';
 
 @Controller('event')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -51,25 +50,37 @@ export class EventController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'image_event', maxCount: 1 },
+    { name: 'image_section', maxCount: 1 },
+  ]))
   create(
     @Body() createEventDto: CreateEventDto,
     @Body('facultyId', FacultyExistsPipe) facultyResult: IOptionPipe<Faculty>,
     @Req() req: Request,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: {
+      image_event: Express.Multer.File[],
+      image_section?: Express.Multer.File[]
+    },
   ) {
-    return this.eventService.create({ ...createEventDto, file, faculty: facultyResult.entity }, req.userId, req.memberTenantId);
+    return this.eventService.create({ ...createEventDto, faculty: facultyResult.entity }, files, req.userId, req.memberTenantId);
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'image_event', maxCount: 1 },
+    { name: 'image_section', maxCount: 1 },
+  ]))
   patch(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateEventDto: UpdateEventDto,
     @Req() req: Request,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: {
+      image_event?: Express.Multer.File[],
+      image_section?: Express.Multer.File[]
+    },
   ) {
-    return this.eventService.patch(id, { ...updateEventDto, file }, req.userId, req.memberTenantId);
+    return this.eventService.patch(id, updateEventDto, files, req.userId, req.memberTenantId);
   }
 
   @Delete(':id')

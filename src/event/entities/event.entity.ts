@@ -24,9 +24,14 @@ export class Event {
     description: string;
 
     @Column('text', {
+        nullable: false,
+    })
+    image_event: string;
+
+    @Column('text', {
         nullable: true,
     })
-    image_url: string;
+    image_section: string;
 
     @Column('timestamp', {
         nullable: false,

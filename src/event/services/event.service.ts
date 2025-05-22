@@ -136,10 +136,17 @@ export class EventService {
     }
   }
 
-  async create(createEventDto: CreateEventDto & { faculty: Faculty }, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
+  async create(
+    createEventDto: CreateEventDto & { faculty: Faculty }, files: {
+      image_event?: Express.Multer.File[],
+      image_section?: Express.Multer.File[]
+    },
+    userId: string,
+    memberTenantId: string
+  ): Promise<ApiResponse<Event>> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { facultyId, file, ...eventDetails } = createEventDto;
+      const { facultyId, ...eventDetails } = createEventDto;
 
       if (new Date(createEventDto.start_date) > new Date(createEventDto.end_date)) {
         throw new BadRequestException('La fecha de inicio no puede ser posterior a la fecha de fin');
@@ -149,13 +156,22 @@ export class EventService {
       if (!existMembertenant)
         throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
 
-      const imageUrl = await this.processFile(file);
+      // Procesar la imagen del evento
+      const imageEventUrl = files.image_event?.length
+        ? await this.processFile(files.image_event[0])
+        : null;
+
+      // Procesar la imagen de la sección
+      const imageSectionUrl = files.image_section?.length
+        ? await this.processFile(files.image_section[0])
+        : null;
 
       const newEvent = this.eventRepository.create({
         ...eventDetails,
         tenantId: existMembertenant.data.id,
         tenant: existMembertenant.data.tenant,
-        image_url: imageUrl || null,
+        image_event: imageEventUrl,
+        image_section: imageSectionUrl,
       });
 
       const savedEvent = await this.eventRepository.save(newEvent);
@@ -183,7 +199,16 @@ export class EventService {
     }
   }
 
-  async patch(id: string, updateEventDto: UpdateEventDto, userId: string, memberTenantId: string): Promise<ApiResponse<Event>> {
+  async patch(
+    id: string,
+    updateEventDto: UpdateEventDto,
+    files: {
+      image_event?: Express.Multer.File[],
+      image_section?: Express.Multer.File[]
+    },
+    userId: string,
+    memberTenantId: string
+  ): Promise<ApiResponse<Event>> {
     try {
       const existMembertenant = await this.memberTenantService.findOne(memberTenantId, userId);
       if (!existMembertenant)
@@ -218,7 +243,7 @@ export class EventService {
         }
       }
 
-      // NUEVO: Manejo de facultyId opcional
+      // Manejo de facultyId opcional
       let faculty = undefined;
 
       if (updateEventDto.facultyId) {
@@ -235,12 +260,18 @@ export class EventService {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { facultyId, file, ...eventDetails } = updateEventDto;
+      const { facultyId, ...eventDetails } = updateEventDto;
 
-      // Procesar archivo si está presente
-      let imageUrl = null;
-      if (file) {
-        imageUrl = await this.processFile(file);
+      // Procesar imagen del evento si está presente
+      let imageEventUrl = null;
+      if (files.image_event?.length) {
+        imageEventUrl = await this.processFile(files.image_event[0]);
+      }
+
+      // Procesar imagen de la sección si está presente
+      let imageSectionUrl = null;
+      if (files.image_section?.length) {
+        imageSectionUrl = await this.processFile(files.image_section[0]);
       }
 
       const oldValues = { ...findEvent };
@@ -250,9 +281,10 @@ export class EventService {
         id,
         tenantId,
         ...eventDetails,
-        ...(file ? { image_url: imageUrl } : {}),
+        ...(imageEventUrl ? { image_event: imageEventUrl } : {}),
+        ...(imageSectionUrl ? { image_section: imageSectionUrl } : {}),
         ...(faculty ? { faculty } : {}),
-        updated_at: new Date()
+        updated_at: new Date() // Considera usar toBoliviaTime() aquí
       });
 
       if (!event) {

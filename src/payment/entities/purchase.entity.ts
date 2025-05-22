@@ -3,6 +3,7 @@ import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany, OneToOne, Prim
 import { Payment } from './payment.entity';
 import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { TicketPurchase } from './ticket-purchase.entity';
+import { PurchaseStatus } from 'src/common/enums/purchase-status/purchase-status.enum';
 
 @Entity()
 export class Purchase {
@@ -19,24 +20,23 @@ export class Purchase {
     })
     total: number;
 
-    @Column('timestamp', {
-        nullable: false,
+    @Column({
+        type: 'enum',
+        enum: PurchaseStatus,
+        default: PurchaseStatus.PENDING
     })
+    status: PurchaseStatus;
+
+    @Column('timestamp', { nullable: false })
     date: Date;
 
-    @Column('timestamp', {
-        nullable: false,
-        default: () => 'now()'
-    })
+    @Column('timestamp', { nullable: false, default: () => 'now()' })
     created_at: Date;
 
-    @Column('timestamp', {
-        nullable: false,
-        default: () => 'now()'
-    })
+    @Column('timestamp', { nullable: false, default: () => 'now()' })
     updated_at: Date;
 
-    //?RELATIONS
+    // RELATIONS
     @ManyToOne(() => User, user => user.purchases)
     user: User;
 
@@ -50,6 +50,4 @@ export class Purchase {
     @ManyToOne(() => Tenant)
     @JoinColumn({ name: 'tenantId' })
     tenant: Tenant;
-    //?
 }
-

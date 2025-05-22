@@ -13,10 +13,6 @@ export class CreateEventDto {
     @IsString()
     description?: string;
 
-    @IsOptional()
-    @IsString()
-    file: Express.Multer.File;
-
     @IsNotEmpty()
     @IsDateString()
     start_date: Date;
