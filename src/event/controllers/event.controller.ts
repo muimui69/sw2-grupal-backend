@@ -23,7 +23,7 @@ import { UpdateEventDto } from '../dto/event/update-event.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { FacultyExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Faculty } from '../entities/faculty.entity';
-import { IOptionPipe } from '../interfaces/option.pipe';
+import { IOptionPipe } from '../pipe/option.pipe';
 
 @Controller('event')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -104,4 +104,5 @@ export class EventController {
   getEventStatistics(@Req() req: Request) {
     return this.eventService.getEventStatistics(req.userId, req.memberTenantId);
   }
+
 }

@@ -27,6 +27,9 @@ export class Purchase {
     })
     status: PurchaseStatus;
 
+    @Column('text', { nullable: true })
+    observations: string;
+
     @Column('timestamp', { nullable: false })
     date: Date;
 

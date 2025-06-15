@@ -34,6 +34,14 @@ export class Payment {
     })
     status: PaymentStatus;
 
+    // Fecha específica del pago (cuando se completó la transacción)
+    @Column('timestamp', { nullable: true })
+    payment_date: Date;
+
+    // ID de transacción (puede ser de Stripe u otro sistema)
+    @Column({ nullable: true })
+    transaction_id: string;
+
     // Stripe specific fields
     @Column({ nullable: true })
     stripePaymentIntentId: string;

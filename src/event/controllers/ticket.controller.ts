@@ -20,7 +20,7 @@ import { AuthTenantGuard } from 'src/auth/guards/auth-tenant.guard';
 import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
 import { SectionExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Section } from '../entities/section.entity';
-import { IOptionPipe } from '../interfaces/option.pipe';
+import { IOptionPipe } from '../pipe/option.pipe';
 import { TicketExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { UpdateTicketPriceDto } from '../dto/ticket/update-price-ticket.dto';
 import { BulkUpdateTicketPriceDto } from '../dto/ticket/bulk-update-price.dto';

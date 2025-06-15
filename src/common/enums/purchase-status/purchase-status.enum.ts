@@ -3,5 +3,6 @@ export enum PurchaseStatus {
     PARTIALLY_PAID = 'partially_paid',
     PAID = 'paid',
     CANCELLED = 'cancelled',
-    REFUNDED = 'refunded'
+    REFUNDED = 'refunded',
+    COMPLETED = 'completed',
 }

@@ -505,6 +505,110 @@ export class EventService {
     }
   }
 
+  async findPublicEvents(paginationDto: PaginationDto & {
+    startDate?: string;
+    endDate?: string;
+    facultyId?: string;
+  }): Promise<ApiResponse<Event[]>> {
+    try {
+      const {
+        limit = 10,
+        offset = 0,
+        search = '',
+        order = 'DESC',
+        orderBy = 'created_at',
+        page = 1,
+        startDate,
+        endDate,
+        facultyId
+      } = paginationDto;
+
+      const skip = page ? (page - 1) * limit : offset;
+
+      const queryBuilder = this.eventRepository.createQueryBuilder('event')
+        .leftJoinAndSelect('event.faculty', 'faculty')
+        .leftJoinAndSelect('event.sections', 'sections')
+        .where('event.is_active = true');
+
+      // Filtro opcional por facultad
+      if (facultyId) {
+        queryBuilder.andWhere('event.facultyId = :facultyId', { facultyId });
+      }
+
+      // Filtrado por fechas si se proporcionan
+      if (startDate) {
+        queryBuilder.andWhere('event.start_date >= :startDate', {
+          startDate: new Date(startDate)
+        });
+      }
+
+      if (endDate) {
+        queryBuilder.andWhere('event.end_date <= :endDate', {
+          endDate: new Date(endDate)
+        });
+      }
+
+      // Búsqueda por texto
+      if (search) {
+        queryBuilder.andWhere(
+          '(event.title ILIKE :search OR event.description ILIKE :search OR event.address ILIKE :search)',
+          { search: `%${search}%` }
+        );
+      }
+
+      queryBuilder
+        .orderBy(`event.${orderBy}`, order)
+        .skip(skip)
+        .take(limit);
+
+      const [events, total] = await queryBuilder.getManyAndCount();
+
+      return createApiResponse(
+        HttpStatus.OK,
+        events,
+        'Eventos obtenidos correctamente',
+        undefined,
+        { total, page: page || Math.floor(skip / limit) + 1, limit }
+      );
+    } catch (error) {
+      throw handleError(error, {
+        context: 'EventService.findPublicEvents',
+        action: 'query',
+        entityName: 'Event',
+        additionalInfo: {
+          message: 'Error al obtener eventos públicos',
+        }
+      });
+    }
+  }
+
+  async findPublicOne(id: string): Promise<ApiResponse<Event>> {
+    try {
+      const event = await this.eventRepository.createQueryBuilder('event')
+        .leftJoinAndSelect('event.faculty', 'faculty')
+        .leftJoinAndSelect('event.sections', 'sections')
+        .where('event.id = :id', { id })
+        .andWhere('event.is_active = true')
+        .getOne();
+
+      if (!event) {
+        throw new NotFoundException(`Evento con ID ${id} no encontrado`);
+      }
+
+      return createApiResponse(HttpStatus.OK, event, 'Evento obtenido correctamente');
+    } catch (error) {
+      throw handleError(error, {
+        context: 'EventService.findPublicOne',
+        action: 'query',
+        entityName: 'Event',
+        entityId: id,
+        additionalInfo: {
+          message: 'Error al obtener evento público',
+        },
+      });
+    }
+  }
+
 
   /**
    * Procesa un archivo opcional en el servicio

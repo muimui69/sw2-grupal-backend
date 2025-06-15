@@ -38,11 +38,6 @@ export class TicketPurchase {
     })
     system_fee: number;
 
-    @Column('text', {
-        nullable: false
-    })
-    qr_code_url: string;
-
     @Column('timestamp', {
         nullable: true //?modificar
     })

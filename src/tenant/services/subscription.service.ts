@@ -293,6 +293,13 @@ export class SubscriptionService {
             };
             const saltOrRounds = genSaltSync(10);
 
+            const subscriptionSkip = body.subscriptionId;
+
+            if (!subscriptionSkip) {
+                console.log(`Evento ${body.type} no contiene subscriptionId, ignorando...`);
+                return;
+            }
+
             const { data: { subscription } } = await this.findSubscriptionById(dataBody.subscriptionId, {});
 
 

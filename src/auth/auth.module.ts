@@ -8,12 +8,13 @@ import { AuthService } from './services/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { AuthSaasGuard } from './guards/auth-saas.guard';
 import { MemberTenant } from 'src/tenant/entities/member-tenant.entity';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AuthSaasGuard],
   imports: [
     UserModule,
     TypeOrmModule.forFeature([
@@ -42,6 +43,8 @@ import { UserModule } from 'src/user/user.module';
       Permission,
       MemberTenant
     ]),
+    AuthSaasGuard,
+    UserModule,
   ]
 })
 export class AuthModule { }

@@ -2,7 +2,7 @@ import * as Joi from 'joi';
 
 export const envSchema = Joi.object({
   PORT: Joi.number().default(3000),
-  DB_PORT: Joi.number().default(5432),
+  DB_PORT: Joi.number().default(5433),
   DB_HOST: Joi.string().required(),
   DB_NAME: Joi.string().required(),
   DB_USER: Joi.string().required(),
@@ -12,6 +12,9 @@ export const envSchema = Joi.object({
   CLOUDINARY_CLOUD_NAME: Joi.string().required(),
   CLOUDINARY_API_KEY: Joi.string().required(),
   CLOUDINARY_API_SECRET: Joi.string().required(),
+  STRIPE_TICKET_WEBHOOK_SECRET: Joi.string().required(),
+  STRIPE_TENANT_WEBHOOK_SECRET: Joi.string().required(),
+  FRONTEND_URL: Joi.string().uri().required(),
   // BLOCKCHAIN_URL: Joi.string().required(),
   // WALLET_PRIVATE_KEY: Joi.string().required(),
   // HARDHAT_MICROSERVICE_URL: Joi.string().required(),

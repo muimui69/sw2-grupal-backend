@@ -17,6 +17,7 @@ import { SectionService } from './services/section.service';
 import { TicketController } from './controllers/ticket.controller';
 import { TicketService } from './services/ticket.service';
 import { Ticket } from './entities/ticket.entity';
+import { PublicEventController } from './controllers/public-event.controller';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { Ticket } from './entities/ticket.entity';
     EventController,
     FacultyController,
     SectionController,
-    TicketController
+    TicketController,
+    PublicEventController
   ],
   providers: [
     EventService,

@@ -21,7 +21,7 @@ import { AuthTenantGuard } from 'src/auth/guards/auth-tenant.guard';
 import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
 import { EventExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { Event } from '../entities/event.entity';
-import { IOptionPipe } from '../interfaces/option.pipe';
+import { IOptionPipe } from '../pipe/option.pipe';
 import { UpdateTicketPriceDto } from '../dto/ticket/update-price-ticket.dto';
 
 @Controller('section')
