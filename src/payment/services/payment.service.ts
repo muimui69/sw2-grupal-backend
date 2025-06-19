@@ -30,7 +30,8 @@ export class PaymentService {
 
     async createPaymentForPurchase(
         purchaseId: string,
-        userId: string
+        userId: string,
+        forceNew: boolean = false
     ): Promise<ApiResponse<Payment>> {
         try {
             // Buscar la compra con sus tickets
@@ -38,8 +39,6 @@ export class PaymentService {
                 where: { id: purchaseId },
                 relations: ['ticketPurchases', 'user']
             });
-
-
 
             if (!purchase) {
                 throw new NotFoundException(`Compra con ID ${purchaseId} no encontrada`);
@@ -66,11 +65,47 @@ export class PaymentService {
                 }
             });
 
-            if (existingPayment) {
-                return createApiResponse(HttpStatus.OK, existingPayment, 'Link de pago recuperado');
+            // Si existe un pago pendiente y no se fuerza uno nuevo, validar si todavía es utilizable
+            if (existingPayment && !forceNew) {
+                try {
+                    // Verificar si la sesión de Stripe sigue siendo válida
+                    const session = await this.stripeService.getCheckoutSession(existingPayment.transaction_id);
+
+                    // Si la sesión no ha expirado y sigue siendo válida, retornar el pago existente
+                    if (session && session.status === 'open') {
+                        return createApiResponse(HttpStatus.OK, {
+                            ...existingPayment,
+                            checkoutUrl: session.url
+                        }, 'Link de pago existente recuperado');
+                    }
+
+                    // Si llegamos aquí, la sesión no es válida, por lo que seguiremos adelante y crearemos una nueva
+                } catch (error) {
+                    console.log('La sesión anterior no es válida, creando una nueva:', error.message);
+                    // Si hay error al verificar la sesión, la consideramos inválida y creamos una nueva
+                }
             }
 
-            // Crear un checkout session en Stripe
+            // Si existe un pago pendiente y estamos forzando uno nuevo o el anterior es inválido,
+            // marcar el pago anterior como cancelado
+            if (existingPayment) {
+                existingPayment.status = PaymentStatus.CANCELLED;
+                existingPayment.updated_at = new Date();
+                await this.paymentRepository.save(existingPayment);
+
+                // Registrar la acción de cancelación en la auditoría
+                await this.auditService.logAction(
+                    ActionType.UPDATE,
+                    'Payment',
+                    existingPayment.id,
+                    userId,
+                    purchase.tenantId,
+                    { status: PaymentStatus.PENDING },
+                    { status: PaymentStatus.CANCELLED }
+                );
+            }
+
+            // Crear un nuevo checkout session en Stripe
             const frontendUrl = this.configService.get<string>('frontend_url');
             const { id: sessionId, url: checkoutUrl } = await this.stripeService.createCheckoutSession({
                 amount: parseFloat(purchase.total.toString()),
@@ -85,13 +120,13 @@ export class PaymentService {
                 description: `Compra #${purchase.id.substring(0, 8)}`
             });
 
-            // Crear registro de pago
+            // Crear nuevo registro de pago
             const payment = this.paymentRepository.create({
                 purchase: { id: purchase.id },
                 amount: purchase.total.toString(),
                 method: PaymentMethod.CARD,
                 status: PaymentStatus.PENDING,
-                transaction_id: sessionId, // Guardamos el session ID como transaction_id
+                transaction_id: sessionId,
                 tenantId: purchase.tenantId,
             });
 
@@ -111,12 +146,17 @@ export class PaymentService {
             // Devolver el payment con la URL de checkout
             return createApiResponse(HttpStatus.CREATED, {
                 ...savedPayment,
-                checkoutUrl // Añadimos la URL para redirección
-            }, 'Link de pago creado exitosamente');
+                checkoutUrl
+            }, forceNew ? 'Nuevo link de pago creado exitosamente' : 'Link de pago creado exitosamente');
         } catch (error) {
             console.error('Error creating payment:', error);
             throw new BadRequestException(`Error al crear el pago: ${error.message}`);
         }
+    }
+
+    // Este método puede ser llamado explícitamente para generar un nuevo link de pago
+    async createNewPaymentLink(purchaseId: string, userId: string): Promise<ApiResponse<Payment>> {
+        return this.createPaymentForPurchase(purchaseId, userId, true);
     }
 
     // Este método sería llamado por el webhook de Stripe

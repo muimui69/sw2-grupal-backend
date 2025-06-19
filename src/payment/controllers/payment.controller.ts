@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, UseGuards, BadRequestException, Req } from '@nestjs/common';
+import { Controller, Post, Get, Param, UseGuards, BadRequestException, Req, ParseUUIDPipe } from '@nestjs/common';
 import { PaymentService } from '../services/payment.service';
 import { Payment } from '../entities/payment.entity';
 import { AuthSaasGuard } from 'src/auth/guards/auth-saas.guard';
@@ -12,7 +12,7 @@ export class PaymentController {
 
     @Post('purchase/:purchaseId')
     async createPaymentForPurchase(
-        @Param('purchaseId') purchaseId: string,
+        @Param('purchaseId', ParseUUIDPipe) purchaseId: string,
         @Req() req: Request
     ): Promise<ApiResponse<Payment>> {
         if (!purchaseId) {
@@ -20,6 +20,14 @@ export class PaymentController {
         }
         const userId = req.userId;
         return this.paymentService.createPaymentForPurchase(purchaseId, userId);
+    }
+
+    @Post('purchase/:purchaseId/new')
+    createNewPaymentLink(
+        @Param('purchaseId', ParseUUIDPipe) purchaseId: string,
+        @Req() req: Request
+    ) {
+        return this.paymentService.createNewPaymentLink(purchaseId, req.userId);
     }
 
     @Get(':paymentId/verify')
