@@ -43,6 +43,9 @@ export class TicketPurchase {
     })
     validated_at: Date;
 
+    @Column({ default: false })
+    is_used: boolean;
+
     @Column('bool', {
         default: true,
         nullable: false,

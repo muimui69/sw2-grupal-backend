@@ -86,29 +86,55 @@ export class PurchaseController {
         return this.purchaseService.findOneForUser(id, req.userId);
     }
 
-    @Get('tenant/my-purchases')
-    @UseGuards(AuthTenantGuard, AuthSaasGuard)
-    getMyPurchasesAsTenant(
-        @Req() req: Request,
-        @Query() paginationDto: PaginationDto
+    @Get('ticket/:ticketPurchaseId/qr')
+    @UseGuards(AuthSaasGuard)
+    generateTicketQR(
+        @Param('ticketPurchaseId', ParseUUIDPipe) ticketPurchaseId: string,
+        @Req() req: Request
     ) {
-        return this.purchaseService.getMyPurchases(
-            req.userId,
-            req.memberTenantId,
-            paginationDto
+        return this.purchaseService.generateTicketQR(
+            ticketPurchaseId,
+            req.userId
         );
     }
 
-    @Post('tenant')
-    @UseGuards(AuthTenantGuard, AuthSaasGuard)
-    createAsTenant(
-        @Body() createPurchaseDto: CreatePurchaseDto,
-        @Req() req: Request
-    ) {
-        return this.purchaseService.create(
-            createPurchaseDto,
-            req.userId,
-            req.memberTenantId
-        );
-    }
+    // todo pendiendte
+    // @Get('verify-blockchain/:transactionHash')
+    // @UseGuards(AuthSaasGuard)
+    // verifyBlockchainTransaction(
+    //     @Param('transactionHash') transactionHash: string
+    // ) {
+    //     // Este endpoint permitiría a los usuarios verificar la autenticidad
+    //     // de una transacción de validación en la blockchain
+    //     const blockchainService = new BlockchainService(null);
+    //     return blockchainService.verifyTicketOnBlockchain(transactionHash);
+    // }
+
+    // @Get('tenant/my-purchases')
+    // @UseGuards(AuthTenantGuard, AuthSaasGuard)
+    // getMyPurchasesAsTenant(
+    //     @Req() req: Request,
+    //     @Query() paginationDto: PaginationDto
+    // ) {
+    //     return this.purchaseService.getMyPurchases(
+    //         req.userId,
+    //         req.memberTenantId,
+    //         paginationDto
+    //     );
+    // }
+
+    // @Post('tenant')
+    // @UseGuards(AuthTenantGuard, AuthSaasGuard)
+    // createAsTenant(
+    //     @Body() createPurchaseDto: CreatePurchaseDto,
+    //     @Req() req: Request
+    // ) {
+    //     return this.purchaseService.create(
+    //         createPurchaseDto,
+    //         req.userId,
+    //         req.memberTenantId
+    //     );
+    // }
+
+
 }

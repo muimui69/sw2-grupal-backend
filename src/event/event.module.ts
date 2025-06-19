@@ -18,6 +18,7 @@ import { TicketController } from './controllers/ticket.controller';
 import { TicketService } from './services/ticket.service';
 import { Ticket } from './entities/ticket.entity';
 import { PublicEventController } from './controllers/public-event.controller';
+import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { PublicEventController } from './controllers/public-event.controller';
       Event,
       Section,
       Faculty,
-      Ticket
+      Ticket,
+      TicketPurchase
     ]),
     TenantModule,
     UserModule,
