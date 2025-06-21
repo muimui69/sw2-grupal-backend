@@ -30,7 +30,7 @@ export class MemberTenantService {
 
     async create(createMemberTenantDto: CreateMemberTenantDto, currentUserId: string): Promise<ApiResponse<Omit<MemberTenant, 'password_tenant'>>> {
         try {
-            const { userId, tenantId, roleId, password_tenant, tenant_address, event_address } = createMemberTenantDto;
+            const { userId, tenantId, roleId, password_tenant } = createMemberTenantDto;
 
             const tenant = await this.tenantRepository.findOneBy({ id: tenantId });
             if (!tenant) {
@@ -64,12 +64,13 @@ export class MemberTenantService {
             }
 
             const newMemberTenant = this.memberTenantRepository.create({
-                tenantId,
+                tenant: { id: tenantId },
                 user: { id: userId },
                 role: { id: roleId },
                 password_tenant: hashedPassword,
-                tenant_address,
-                event_address
+                // Uncomment the following lines only if these properties exist in your MemberTenant entity
+                // tenant_address,
+                // event_address
             });
 
             const savedMemberTenant = await this.memberTenantRepository.save(newMemberTenant);
@@ -234,13 +235,13 @@ export class MemberTenantService {
                 updateData.password_tenant = await bcrypt.hash(updateMemberTenantDto.password_tenant, 10);
             }
 
-            if (updateMemberTenantDto.tenant_address !== undefined) {
-                updateData.tenant_address = updateMemberTenantDto.tenant_address;
-            }
+            // if (updateMemberTenantDto.tenant_address !== undefined) {
+            //     updateData.tenant_address = updateMemberTenantDto.tenant_address;
+            // }
 
-            if (updateMemberTenantDto.event_address !== undefined) {
-                updateData.event_address = updateMemberTenantDto.event_address;
-            }
+            // if (updateMemberTenantDto.event_address !== undefined) {
+            //     updateData.event_address = updateMemberTenantDto.event_address;
+            // }
 
             // Guardar estado anterior para auditoría
             const oldValues = { ...member, password_tenant: member.password_tenant ? '[REDACTED]' : null };
@@ -477,8 +478,6 @@ export class MemberTenantService {
                     memberTenantId: member.id,
                     tenant: member.tenant,
                     role: member.role,
-                    tenant_address: member.tenant_address,
-                    event_address: member.event_address,
                     hasPassword: !!member.password_tenant
                 };
             });
@@ -495,4 +494,6 @@ export class MemberTenantService {
             });
         }
     }
+
+
 }

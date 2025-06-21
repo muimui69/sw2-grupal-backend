@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TenantService } from './services/tenant.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Subscription } from './entities/subscription.entity';
@@ -18,6 +18,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthTenantGuard } from 'src/auth/guards/auth-tenant.guard';
 import { MemberTenantService } from './services/member-tenant.service';
+import { BlockchainModule } from '../blockchain/blockchain.module';
 
 
 @Module({
@@ -56,7 +57,8 @@ import { MemberTenantService } from './services/member-tenant.service';
                     },
                 };
             },
-        }),
+                }),
+        forwardRef(() => BlockchainModule),
     ],
     exports: [
         TenantService,

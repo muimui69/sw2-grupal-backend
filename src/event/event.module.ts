@@ -19,6 +19,9 @@ import { TicketService } from './services/ticket.service';
 import { Ticket } from './entities/ticket.entity';
 import { PublicEventController } from './controllers/public-event.controller';
 import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
+import { TicketValidatorContractService } from 'src/blockchain/services/ticket-validator-contract.service';
+import { HttpModule } from '@nestjs/axios';
+import { MemberTenant } from 'src/tenant/entities/member-tenant.entity';
 
 @Module({
   imports: [
@@ -27,11 +30,13 @@ import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
       Section,
       Faculty,
       Ticket,
-      TicketPurchase
+      TicketPurchase,
+      MemberTenant
     ]),
     TenantModule,
     UserModule,
-    CloudinaryModule
+    CloudinaryModule,
+    HttpModule
   ],
   controllers: [
     EventController,
@@ -41,6 +46,7 @@ import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
     PublicEventController
   ],
   providers: [
+    TicketValidatorContractService,
     EventService,
     FacultyService,
     SectionService,

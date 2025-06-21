@@ -20,6 +20,7 @@ import { PurchaseStatus } from 'src/common/enums/purchase-status/purchase-status
 import * as crypto from 'crypto';
 import * as QRCode from 'qrcode-reader';
 import { Jimp } from 'jimp';
+import { TicketValidatorContractService } from 'src/blockchain/services/ticket-validator-contract.service';
 
 @Injectable()
 export class TicketService {
@@ -31,7 +32,8 @@ export class TicketService {
         @InjectRepository(TicketPurchase)
         private ticketPurchaseRepository: Repository<TicketPurchase>,
         private memberTenantService: MemberTenantService,
-        private auditService: AuditService
+        private auditService: AuditService,
+        private ticketValidatorContractService: TicketValidatorContractService
     ) { }
 
     /**
@@ -846,6 +848,8 @@ export class TicketService {
         memberTenantId: string
     ): Promise<ApiResponse<any>> {
         try {
+
+            console.log(qrImageData, userId, memberTenantId, ':::::::::::::::::::::::::::::::::::');
             const existMembertenant = await this.memberTenantService.findOne(memberTenantId, userId);
             if (!existMembertenant) {
                 throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
@@ -865,6 +869,7 @@ export class TicketService {
                 // Decodificar la imagen
                 const qrText = await this.decodeQRFromBase64(base64Data);
 
+                console.log('QR decodificado:', qrText);
                 if (!qrText) {
                     return createApiResponse(HttpStatus.BAD_REQUEST, {
                         isValid: false,
@@ -950,22 +955,56 @@ export class TicketService {
                 { is_used: true, validated_at: ticketPurchase.validated_at }
             );
 
-            // Generar hash para simular registro en blockchain
-            const blockchainHash = this.simulateBlockchainRegistration(ticketPurchase, userId);
 
-            return createApiResponse(HttpStatus.OK, {
-                isValid: true,
-                message: 'Ticket validado correctamente',
-                ticketData: {
-                    ticketId: ticketPurchase.id,
-                    section: {
-                        name: ticket.section.name,
-                        id: ticket.section.id
-                    },
-                    validatedAt: ticketPurchase.validated_at,
-                    blockchainHash
-                }
-            }, 'Validación de ticket completada');
+            // Registrar la validación en blockchain
+            try {
+                const eventId = ticket.section.event?.id || 'unknown-event';
+                const sectionName = ticket.section.name || 'Sin sección';
+
+                // Llamar al servicio de blockchain para registrar la validación
+                const blockchainResult = await this.ticketValidatorContractService.registerTicketValidation(
+                    memberTenantId,
+                    ticketPurchase.id,
+                    ticketPurchase.purchase.id,
+                    userId,
+                    eventId,
+                    sectionName
+                );
+
+                return createApiResponse(HttpStatus.OK, {
+                    isValid: true,
+                    message: 'Ticket validado correctamente y registrado en blockchain',
+                    ticketData: {
+                        ticketId: ticketPurchase.id,
+                        section: {
+                            name: ticket.section.name,
+                            id: ticket.section.id
+                        },
+                        validatedAt: ticketPurchase.validated_at,
+                        blockchain: {
+                            txHash: blockchainResult.txHash,
+                            validationHash: blockchainResult.validationHash
+                        }
+                    }
+                }, 'Validación de ticket completada');
+            } catch (blockchainError) {
+                console.error('Error al registrar en blockchain:', blockchainError);
+
+                return createApiResponse(HttpStatus.OK, {
+                    isValid: true,
+                    message: 'Ticket validado correctamente, pero hubo un problema al registrar en blockchain',
+                    error: blockchainError.message,
+                    ticketData: {
+                        ticketId: ticketPurchase.id,
+                        section: {
+                            name: ticket.section.name,
+                            id: ticket.section.id
+                        },
+                        validatedAt: ticketPurchase.validated_at
+                    }
+                }, 'Validación de ticket completada con advertencias');
+            }
+
         } catch (error) {
             console.error('Error en validateTicket:', error);
             return createApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, {

@@ -291,6 +291,9 @@ export class SectionService {
 
             const tenantId = existMembertenant.data.tenantId;
 
+            console.log('Finding section with ID:', id, 'for tenant:', tenantId);
+
+
             const section = await this.sectionRepository.findOne({
                 where: {
                     id,
@@ -299,6 +302,8 @@ export class SectionService {
                 },
                 relations: ['event', 'tickets']
             });
+
+            console.log('section?>>???????????????????????????', section);
 
             if (!section) {
                 throw new NotFoundException(`Sección con ID ${id} no encontrada`);
@@ -526,7 +531,10 @@ export class SectionService {
     ): Promise<ApiResponse<{ created: number }>> {
         try {
             // Verificar que la sección existe
+            console.log('Creating tickets for section:', sectionId, 'Quantity:', quantity);
             const sectionResponse = await this.findOne(sectionId, userId, memberTenantId);
+            console.log('sectionResponse????????????????????????????????????????????????', sectionResponse);
+
             if (!sectionResponse || !sectionResponse.data) {
                 throw new NotFoundException(`Sección con ID ${sectionId} no encontrada`);
             }

@@ -22,6 +22,7 @@ import { SubscriptionPlanTypeEnum } from 'src/common/enums/suscription-plan-type
 import { Configuration } from '../entities/configuration.entity';
 import { ApiResponse } from 'src/common/interfaces/response.interface';
 import { ListSubscription, PaymentSubscription, SusbcriptionByID, WebhookPayment } from '../interfaces/subscription.interface';
+import { TicketValidatorContractService } from 'src/blockchain/services/ticket-validator-contract.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -40,6 +41,7 @@ export class SubscriptionService {
         private readonly roleRepository: Repository<Role>,
         private readonly dataSource: DataSource,
         private readonly configService: ConfigService,
+        private readonly ticketValidatorContractService: TicketValidatorContractService
     ) {
         this.stripe = new Stripe(this.configService.get<string>("stripe_key"));
     }
@@ -381,6 +383,19 @@ export class SubscriptionService {
                 // await queryRunner.manager.save(roleEntity);
 
                 await queryRunner.commitTransaction();
+
+
+                try {
+                    await this.ticketValidatorContractService.deployTicketValidatorContract(
+                        dataBody.userId,
+                        tenantCreate.id
+                    );
+
+                    console.log(`Contrato de TicketValidator desplegado para tenant ${tenantCreate.id}`);
+                } catch (contractError) {
+                    console.error(`Error al desplegar contrato de TicketValidator: ${contractError.message}`);
+                }
+
 
                 // await this.mailsService.sendCredencialesCliente(
                 //     userFind.name,

@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, NotFoundException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Purchase } from '../entities/purchase.entity';
 import { TicketPurchase } from '../entities/ticket-purchase.entity';
@@ -27,7 +27,7 @@ export class PurchaseService {
         private readonly ticketPurchaseRepository: Repository<TicketPurchase>,
         @InjectRepository(Section)
         private readonly sectionRepository: Repository<Section>,
-        @InjectRepository(Ticket)
+        @InjectDataSource()
         private readonly dataSource: DataSource,
         private readonly memberTenantService: MemberTenantService,
         private readonly auditService: AuditService,
@@ -623,7 +623,7 @@ export class PurchaseService {
                 entityName: 'Purchase',
                 additionalInfo: {
                     userId,
-                    date: '2025-06-15 15:33:42', // Actualizado a la hora actual proporcionada
+                    date: '2025-06-15 15:33:42',
                     message: 'Error al crear la compra',
                 }
             });

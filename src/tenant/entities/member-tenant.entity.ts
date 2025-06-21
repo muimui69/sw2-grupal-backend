@@ -20,12 +20,7 @@ export class MemberTenant {
     @Column('text', {
         nullable: true
     })
-    tenant_address: string;
-
-    @Column('text', {
-        nullable: true
-    })
-    event_address: string;
+    ticket_validator_address: string;
 
     @Column('timestamp', {
         nullable: false,
