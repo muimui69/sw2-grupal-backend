@@ -1,82 +1,34 @@
-// import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-// import { Tenant } from '../entities/tenant.entity';
-// import { SubscriptionService } from './subscription.service';
-// import { SubscriptionPlanType } from 'src/common/enums/suscription-plan-type/suscription-plan-type.enum';
-// import { CreateTenantDto } from '../dto/tenant/create-tenant.dto';
-// import { UpdateTenantDto } from '../dto/tenant/update-tenant.dto';
-
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { MemberTenant } from '../entities/member-tenant.entity'; // Asegúrate de ajustar la ruta según tu estructura
 
 @Injectable()
 export class TenantService {
-    // constructor(
-    //     @InjectRepository(Tenant)
-    //     private readonly tenantRepository: Repository<Tenant>,
-    //     @Inject(forwardRef(() => SubscriptionService))
-    //     private readonly subscriptionService: SubscriptionService,
-    // ) { }
+    constructor(
+        @InjectRepository(MemberTenant)
+        private readonly memberTenantRepository: Repository<MemberTenant>
+    ) { }
 
-    // async findAll(): Promise<Tenant[]> {
-    //     return this.tenantRepository.find();
-    // }
+    /**
+     * Verifica si un usuario es miembro de un tenant específico
+     * @param userId ID del usuario
+     * @param tenantId ID del tenant
+     * @returns true si el usuario es miembro del tenant, false en caso contrario
+     */
+    async isUserMemberOfTenant(userId: string, tenantId: string): Promise<boolean> {
+        try {
+            const memberTenant = await this.memberTenantRepository.findOne({
+                where: {
+                    user: { id: userId },
+                    tenant: { id: tenantId },
+                }
+            });
 
-    // async findById(id: string): Promise<Tenant> {
-    //     const tenant = await this.tenantRepository.findOne({
-    //         where: { id }
-    //     });
-
-    //     if (!tenant) {
-    //         throw new NotFoundException(`Tenant with ID ${id} not found`);
-    //     }
-
-    //     return tenant;
-    // }
-
-    // async findByName(name: string): Promise<Tenant> {
-    //     return this.tenantRepository.findOne({
-    //         where: { name }
-    //     });
-    // }
-
-    // async create(createTenantDto: CreateTenantDto, planType: SubscriptionPlanType): Promise<Tenant> {
-    //     // Verificar que el nombre de tenant no esté en uso
-    //     const existing = await this.findByName(createTenantDto.name);
-    //     if (existing) {
-    //         throw new Error('Tenant name already in use');
-    //     }
-
-    //     // Crear el tenant
-    //     const tenant = await this.tenantRepository.save({
-    //         ...createTenantDto,
-    //         active: true
-    //     });
-
-    //     // Crear suscripción para el tenant
-    //     await this.subscriptionService.createForTenant(tenant.id, planType);
-
-    //     return tenant;
-    // }
-
-    // async update(id: string, updateTenantDto: UpdateTenantDto): Promise<Tenant> {
-    //     const tenant = await this.findById(id);
-
-    //     await this.tenantRepository.update(id, updateTenantDto);
-
-    //     return this.findById(id);
-    // }
-
-    // async deactivate(id: string): Promise<void> {
-    //     const tenant = await this.findById(id);
-
-    //     await this.tenantRepository.update(id, { active: false });
-    //     // También se podría desactivar la suscripción
-    // }
-
-    // async activate(id: string): Promise<void> {
-    //     const tenant = await this.findById(id);
-
-    //     await this.tenantRepository.update(id, { active: true });
-    // }
+            return !!memberTenant; // Retorna true si se encontró un registro, false si no
+        } catch (error) {
+            console.error(`Error al verificar membresía del usuario ${userId} en tenant ${tenantId}:`, error.message);
+            return false; // En caso de error, devolver false por seguridad
+        }
+    }
 }

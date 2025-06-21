@@ -1,5 +1,5 @@
 import * as mime from 'mime-types';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 /**
  * Resultado de la validación de una imagen

@@ -6,14 +6,10 @@ import { ethers } from 'ethers';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { MemberTenant } from 'src/tenant/entities/member-tenant.entity';
-// import ticketValidatorAbi from '../abis/contracts/TicketValidator.json';
+import ticketValidatorAbi from '../abis/contracts/TicketValidator.json';
 import { User } from 'src/auth/entities/user.entity';
 import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { Role } from 'src/auth/entities/role.entity';
-import * as path from 'path';
-import * as fs from 'fs';
-const ticketValidatorAbiPath = path.resolve(__dirname, '../abis/contracts/TicketValidator.json');
-const ticketValidatorAbi = JSON.parse(fs.readFileSync(ticketValidatorAbiPath, 'utf8'));
 
 @Injectable()
 export class TicketValidatorContractService {

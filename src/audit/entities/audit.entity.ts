@@ -6,7 +6,10 @@ export enum ActionType {
     DELETE = 'delete',
     VIEW = 'view',
     LOGIN = 'login',
-    LOGOUT = 'logout'
+    LOGOUT = 'logout',
+    VERIFY = 'verify',
+    REJECT = 'reject',
+    APPROVE = 'approve',
 }
 
 @Entity('audit_logs')

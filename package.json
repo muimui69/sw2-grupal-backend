@@ -20,6 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-rekognition": "^3.830.0",
+    "@aws-sdk/client-textract": "^3.830.0",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.1",
