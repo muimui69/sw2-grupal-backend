@@ -15,6 +15,7 @@ import { ApiResponse, createApiResponse } from 'src/common/interfaces/response.i
 import { ActionType } from 'src/audit/entities/audit.entity';
 import { handleError } from 'src/common/helpers/function-helper';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Event } from 'src/event/entities/event.entity';
 
 @Injectable()
 export class IdentityVerificationService {
@@ -27,6 +28,8 @@ export class IdentityVerificationService {
     private identityVerificationRepository: Repository<IdentityVerification>,
     @InjectRepository(TicketPurchase)
     private ticketPurchaseRepository: Repository<TicketPurchase>,
+    @InjectRepository(Event)
+    private eventRepository: Repository<Event>,
     private configService: ConfigService,
     private auditService: AuditService,
     private memberTenantService: MemberTenantService
@@ -202,14 +205,14 @@ export class IdentityVerificationService {
 
 
   /**
-  * Procesa y valida la identidad del usuario con documentos y selfie, y crea la verificación.
-  * @param userId ID del usuario
-  * @param eventId ID del evento
-  * @param documentFrontBuffer Buffer del anverso del documento
-  * @param documentBackBuffer Buffer del reverso del documento
-  * @param selfieBuffer Buffer de la selfie
-  * @returns Información de la verificación creada y su resultado
-  */
+ * Procesa y valida la identidad del usuario con documentos y selfie, y crea la verificación.
+ * @param userId ID del usuario
+ * @param eventId ID del evento
+ * @param documentFrontBuffer Buffer del anverso del documento
+ * @param documentBackBuffer Buffer del reverso del documento
+ * @param selfieBuffer Buffer de la selfie
+ * @returns Información de la verificación creada y su resultado
+ */
   async processAndCreateVerification(
     userId: string,
     eventId: string,
@@ -218,6 +221,39 @@ export class IdentityVerificationService {
     selfieBuffer: Buffer
   ): Promise<ApiResponse<{ verification: IdentityVerification, faceMatch: boolean }>> {
     try {
+      const event = await this.eventRepository.findOne({
+        where: { id: eventId },
+        select: {
+          id: true,
+          tenantId: true
+        }
+      });
+
+      if (!event) {
+        throw new NotFoundException(`Evento con ID ${eventId} no encontrado`);
+      }
+
+      const tenantId = event.tenantId;
+
+      // Verificar si ya existe una verificación para este usuario y evento
+      // const existingVerification = await this.identityVerificationRepository.findOne({
+      //   where: {
+      //     user: { id: userId },
+      //     event: { id: eventId }
+      //   }
+      // });
+
+      // if (existingVerification) {
+      //   return createApiResponse(
+      //     HttpStatus.BAD_REQUEST,
+      //     {
+      //       verification: existingVerification,
+      //       faceMatch: existingVerification.status
+      //     },
+      //     'Ya existe una verificación de identidad para este usuario en este evento'
+      //   );
+      // }
+
       // Realizar el reconocimiento facial para verificar que la selfie coincide con el documento
       const frontMatch = await this.compareFacesBuffer(documentFrontBuffer, selfieBuffer);
       let faceMatch = frontMatch;
@@ -245,11 +281,11 @@ export class IdentityVerificationService {
 
       // Crear registro de verificación
       const verification = this.identityVerificationRepository.create({
-        document_url: documentFrontPath, // Guardamos la ruta del documento frontal
+        document_url: documentFrontPath,
         selfie_url: selfiePath,
         user: { id: userId },
         event: { id: eventId },
-        status: faceMatch // Aprobación automática si hay coincidencia facial
+        ...(tenantId && { tenantId }),
       });
 
       // Si hay coincidencia facial, establecer la fecha de verificación
@@ -265,7 +301,7 @@ export class IdentityVerificationService {
         'IdentityVerification',
         savedVerification.id,
         userId,
-        null, // No se necesita tenantId
+        tenantId, // Usar el tenant ID obtenido
         {
           eventId,
           faceMatch,

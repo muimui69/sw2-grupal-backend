@@ -7,6 +7,7 @@ import { IdentityVerification } from './entities/identity-verification.entity';
 import { TicketPurchase } from 'src/payment/entities/ticket-purchase.entity';
 import { IdentityVerificationController } from './controllers/identity.controller';
 import { IdentityVerificationService } from './services/identity.service';
+import { Event } from 'src/event/entities/event.entity';
 
 @Module({
   controllers: [IdentityVerificationController],
@@ -14,7 +15,8 @@ import { IdentityVerificationService } from './services/identity.service';
   imports: [
     TypeOrmModule.forFeature([
       IdentityVerification,
-      TicketPurchase
+      TicketPurchase,
+      Event
     ]),
     TenantModule,
     AuthModule,

@@ -69,7 +69,7 @@ export class IdentityVerificationController {
    * @returns Detalles de la verificación y resultado de la comparación facial
    */
   @Post('process-verification')
-  @UseGuards(AuthSaasGuard, AuthTenantGuard)
+  @UseGuards(AuthSaasGuard)
   @UseInterceptors(FilesInterceptor('files', 3)) // Aceptar 3 archivos: frente, reverso, selfie
   @HttpCode(HttpStatus.CREATED)
   async processVerification(
