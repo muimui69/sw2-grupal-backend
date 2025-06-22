@@ -21,6 +21,7 @@ import * as crypto from 'crypto';
 import * as QRCode from 'qrcode-reader';
 import { Jimp } from 'jimp';
 import { TicketValidatorContractService } from 'src/blockchain/services/ticket-validator-contract.service';
+import { ValidateTicketDto } from '../dto/ticket/validate-ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -770,11 +771,15 @@ export class TicketService {
         }
     }
 
-    /**
-     * Verificar la disponibilidad y validez de un ticket
-     */
-    // async validateTicket(ticketId: string, userId: string, memberTenantId: string): Promise<ApiResponse<{ isValid: boolean, message: string }>> {
+
+    // async validateTicket(
+    //     qrImageData: string, // Recibe la imagen en base64
+    //     userId: string,
+    //     memberTenantId: string
+    // ): Promise<ApiResponse<any>> {
     //     try {
+
+    //         console.log(qrImageData, userId, memberTenantId, ':::::::::::::::::::::::::::::::::::');
     //         const existMembertenant = await this.memberTenantService.findOne(memberTenantId, userId);
     //         if (!existMembertenant) {
     //             throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
@@ -782,74 +787,172 @@ export class TicketService {
 
     //         const tenantId = existMembertenant.data.tenantId;
 
-    //         const ticket = await this.ticketRepository.findOne({
+    //         // Decodificar la imagen del QR
+    //         let qrPayload;
+    //         try {
+    //             // Extraer la parte base64 real si viene con prefijo data:image
+    //             let base64Data = qrImageData;
+    //             if (base64Data.startsWith('data:image')) {
+    //                 base64Data = base64Data.split(',')[1];
+    //             }
+
+    //             // Decodificar la imagen
+    //             const qrText = await this.decodeQRFromBase64(base64Data);
+
+    //             console.log('QR decodificado:', qrText);
+    //             if (!qrText) {
+    //                 return createApiResponse(HttpStatus.BAD_REQUEST, {
+    //                     isValid: false,
+    //                     message: 'No se pudo decodificar ningún QR de la imagen'
+    //                 }, 'Validación de ticket completada');
+    //             }
+
+    //             // Parsear el contenido del QR
+    //             qrPayload = JSON.parse(qrText);
+    //         } catch (e) {
+    //             console.error('Error al decodificar QR:', e);
+    //             return createApiResponse(HttpStatus.BAD_REQUEST, {
+    //                 isValid: false,
+    //                 message: 'Error al procesar la imagen del QR: ' + e.message
+    //             }, 'Validación de ticket completada');
+    //         }
+
+    //         // Validar que el QR contenga datos necesarios
+    //         if (!qrPayload.purchaseId || !qrPayload.ticketId) {
+    //             return createApiResponse(HttpStatus.BAD_REQUEST, {
+    //                 isValid: false,
+    //                 message: 'QR inválido: datos insuficientes'
+    //             }, 'Validación de ticket completada');
+    //         }
+
+    //         // Buscar el ticket-purchase asociado
+    //         const ticketPurchase = await this.ticketPurchaseRepository.findOne({
     //             where: {
-    //                 id: ticketId,
-    //                 tenantId,
-    //                 is_active: true
+    //                 id: qrPayload.ticketId,
+    //                 purchase: { id: qrPayload.purchaseId },
+    //                 tenantId
     //             },
-    //             relations: ['section', 'section.event', 'ticketPurchases']
+    //             relations: ['ticket', 'ticket.section', 'purchase']
     //         });
 
-    //         if (!ticket) {
+    //         if (!ticketPurchase) {
     //             return createApiResponse(HttpStatus.OK, {
     //                 isValid: false,
-    //                 message: 'Ticket no encontrado o no disponible'
+    //                 message: 'Ticket no encontrado o no pertenece a este tenant'
     //             }, 'Validación de ticket completada');
     //         }
 
-    //         // Verificar si el ticket tiene promoción y si está dentro del período válido
-    //         const now = new Date();
-    //         if (ticket.modificationType && ticket.validUntil) {
-    //             if (now > new Date(ticket.validUntil)) {
-    //                 return createApiResponse(HttpStatus.OK, {
-    //                     isValid: false,
-    //                     message: `La promoción ${ticket.modificationType} ha expirado`
-    //                 }, 'Validación de ticket completada');
-    //             }
-
-    //             if (ticket.validFrom && now < new Date(ticket.validFrom)) {
-    //                 return createApiResponse(HttpStatus.OK, {
-    //                     isValid: false,
-    //                     message: `La promoción ${ticket.modificationType} aún no está disponible`
-    //                 }, 'Validación de ticket completada');
-    //             }
-    //         }
-
-    //         // Verificar disponibilidad de capacidad en la sección
-    //         const ticketsPurchased = ticket.ticketPurchases?.reduce((sum, tp) => sum + tp.quantity, 0) || 0;
-
-    //         if (ticket.section && ticketsPurchased >= ticket.section.capacity) {
+    //         // Verificar que la compra esté pagada
+    //         if (ticketPurchase.purchase.status !== PurchaseStatus.PAID) {
     //             return createApiResponse(HttpStatus.OK, {
     //                 isValid: false,
-    //                 message: 'No hay capacidad disponible para esta sección'
+    //                 message: 'Este ticket no ha sido pagado'
     //             }, 'Validación de ticket completada');
     //         }
 
-    //         return createApiResponse(HttpStatus.OK, {
-    //             isValid: true,
-    //             message: 'Ticket válido y disponible'
-    //         }, 'Validación de ticket completada');
+    //         // Verificar si el ticket ya ha sido usado
+    //         if (ticketPurchase.is_used) {
+    //             return createApiResponse(HttpStatus.OK, {
+    //                 isValid: false,
+    //                 message: 'Este ticket ya ha sido utilizado',
+    //                 usedAt: ticketPurchase.validated_at
+    //             }, 'Validación de ticket completada');
+    //         }
+
+    //         // Verificar la sección
+    //         const ticket = ticketPurchase.ticket;
+    //         if (!ticket.section) {
+    //             return createApiResponse(HttpStatus.OK, {
+    //                 isValid: false,
+    //                 message: 'Este ticket no tiene una sección válida'
+    //             }, 'Validación de ticket completada');
+    //         }
+
+    //         // Marcar el ticket como usado
+    //         ticketPurchase.is_used = true;
+    //         ticketPurchase.validated_at = new Date();
+
+    //         await this.ticketPurchaseRepository.save(ticketPurchase);
+
+    //         // Registrar auditoría
+    //         await this.auditService.logAction(
+    //             ActionType.UPDATE,
+    //             'TicketPurchase',
+    //             ticketPurchase.id,
+    //             userId,
+    //             tenantId,
+    //             { is_used: false },
+    //             { is_used: true, validated_at: ticketPurchase.validated_at }
+    //         );
+
+
+    //         // Registrar la validación en blockchain
+    //         try {
+    //             const eventId = ticket.section.event?.id || 'unknown-event';
+    //             const sectionName = ticket.section.name || 'Sin sección';
+
+    //             // Llamar al servicio de blockchain para registrar la validación
+    //             const blockchainResult = await this.ticketValidatorContractService.registerTicketValidation(
+    //                 memberTenantId,
+    //                 ticketPurchase.id,
+    //                 ticketPurchase.purchase.id,
+    //                 userId,
+    //                 eventId,
+    //                 sectionName
+    //             );
+
+    //             return createApiResponse(HttpStatus.OK, {
+    //                 isValid: true,
+    //                 message: 'Ticket validado correctamente y registrado en blockchain',
+    //                 ticketData: {
+    //                     ticketId: ticketPurchase.id,
+    //                     section: {
+    //                         name: ticket.section.name,
+    //                         id: ticket.section.id
+    //                     },
+    //                     validatedAt: ticketPurchase.validated_at,
+    //                     blockchain: {
+    //                         txHash: blockchainResult.txHash,
+    //                         validationHash: blockchainResult.validationHash
+    //                     }
+    //                 }
+    //             }, 'Validación de ticket completada');
+    //         } catch (blockchainError) {
+    //             console.error('Error al registrar en blockchain:', blockchainError);
+
+    //             return createApiResponse(HttpStatus.OK, {
+    //                 isValid: true,
+    //                 message: 'Ticket validado correctamente, pero hubo un problema al registrar en blockchain',
+    //                 error: blockchainError.message,
+    //                 ticketData: {
+    //                     ticketId: ticketPurchase.id,
+    //                     section: {
+    //                         name: ticket.section.name,
+    //                         id: ticket.section.id
+    //                     },
+    //                     validatedAt: ticketPurchase.validated_at
+    //                 }
+    //             }, 'Validación de ticket completada con advertencias');
+    //         }
+
     //     } catch (error) {
-    //         throw handleError(error, {
-    //             context: 'TicketService.validateTicket',
-    //             action: 'read',
-    //             entityName: 'Ticket',
-    //             entityId: ticketId,
-    //             additionalInfo: {
-    //                 message: 'Error al validar ticket'
-    //             }
-    //         });
+    //         console.error('Error en validateTicket:', error);
+    //         return createApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, {
+    //             isValid: false,
+    //             message: 'Error al procesar la validación: ' + error.message
+    //         }, 'Error en validación de ticket');
     //     }
     // }
+
     async validateTicket(
-        qrImageData: string, // Recibe la imagen en base64
+        ticketData: ValidateTicketDto,
         userId: string,
         memberTenantId: string
     ): Promise<ApiResponse<any>> {
         try {
+            console.log('Datos recibidos:', ticketData, userId, memberTenantId);
 
-            console.log(qrImageData, userId, memberTenantId, ':::::::::::::::::::::::::::::::::::');
+            // Verificar membresía en el tenant
             const existMembertenant = await this.memberTenantService.findOne(memberTenantId, userId);
             if (!existMembertenant) {
                 throw new NotFoundException(`Miembro inquilino con ID ${memberTenantId} no encontrado`);
@@ -857,52 +960,22 @@ export class TicketService {
 
             const tenantId = existMembertenant.data.tenantId;
 
-            // Decodificar la imagen del QR
-            let qrPayload;
-            try {
-                // Extraer la parte base64 real si viene con prefijo data:image
-                let base64Data = qrImageData;
-                if (base64Data.startsWith('data:image')) {
-                    base64Data = base64Data.split(',')[1];
-                }
-
-                // Decodificar la imagen
-                const qrText = await this.decodeQRFromBase64(base64Data);
-
-                console.log('QR decodificado:', qrText);
-                if (!qrText) {
-                    return createApiResponse(HttpStatus.BAD_REQUEST, {
-                        isValid: false,
-                        message: 'No se pudo decodificar ningún QR de la imagen'
-                    }, 'Validación de ticket completada');
-                }
-
-                // Parsear el contenido del QR
-                qrPayload = JSON.parse(qrText);
-            } catch (e) {
-                console.error('Error al decodificar QR:', e);
+            // Validar que el DTO contenga datos necesarios
+            if (!ticketData.purchaseId || !ticketData.ticketId) {
                 return createApiResponse(HttpStatus.BAD_REQUEST, {
                     isValid: false,
-                    message: 'Error al procesar la imagen del QR: ' + e.message
-                }, 'Validación de ticket completada');
-            }
-
-            // Validar que el QR contenga datos necesarios
-            if (!qrPayload.purchaseId || !qrPayload.ticketId) {
-                return createApiResponse(HttpStatus.BAD_REQUEST, {
-                    isValid: false,
-                    message: 'QR inválido: datos insuficientes'
+                    message: 'Datos inválidos: información de ticket insuficiente'
                 }, 'Validación de ticket completada');
             }
 
             // Buscar el ticket-purchase asociado
             const ticketPurchase = await this.ticketPurchaseRepository.findOne({
                 where: {
-                    id: qrPayload.ticketId,
-                    purchase: { id: qrPayload.purchaseId },
+                    id: ticketData.ticketId,
+                    purchase: { id: ticketData.purchaseId },
                     tenantId
                 },
-                relations: ['ticket', 'ticket.section', 'purchase']
+                relations: ['ticket', 'ticket.section', 'ticket.section.event', 'purchase']
             });
 
             if (!ticketPurchase) {
@@ -938,6 +1011,14 @@ export class TicketService {
                 }, 'Validación de ticket completada');
             }
 
+            // Validar que la sección en el QR coincida con la sección real
+            if (ticket.section.name !== ticketData.ticketSection) {
+                return createApiResponse(HttpStatus.OK, {
+                    isValid: false,
+                    message: `La sección en el ticket (${ticketData.ticketSection}) no coincide con la registrada (${ticket.section.name})`
+                }, 'Validación de ticket completada');
+            }
+
             // Marcar el ticket como usado
             ticketPurchase.is_used = true;
             ticketPurchase.validated_at = new Date();
@@ -954,7 +1035,6 @@ export class TicketService {
                 { is_used: false },
                 { is_used: true, validated_at: ticketPurchase.validated_at }
             );
-
 
             // Registrar la validación en blockchain
             try {
@@ -980,6 +1060,11 @@ export class TicketService {
                             name: ticket.section.name,
                             id: ticket.section.id
                         },
+                        event: ticket.section.event ? {
+                            address: ticket.section.event.address,
+                            id: ticket.section.event.id,
+                            date: ticket.section.event.start_date
+                        } : null,
                         validatedAt: ticketPurchase.validated_at,
                         blockchain: {
                             txHash: blockchainResult.txHash,
@@ -1000,6 +1085,11 @@ export class TicketService {
                             name: ticket.section.name,
                             id: ticket.section.id
                         },
+                        event: ticket.section.event ? {
+                            address: ticket.section.event.address,
+                            id: ticket.section.event.id,
+                            date: ticket.section.event.start_date
+                        } : null,
                         validatedAt: ticketPurchase.validated_at
                     }
                 }, 'Validación de ticket completada con advertencias');

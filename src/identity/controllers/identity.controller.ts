@@ -35,7 +35,7 @@ export class IdentityVerificationController {
    * @returns Resultado de la verificación de límite
    */
   @Get('check-limit')
-  @UseGuards(AuthSaasGuard, AuthTenantGuard)
+  @UseGuards(AuthSaasGuard)
   @HttpCode(HttpStatus.OK)
   async checkPurchaseLimit(
     @Req() req: Request,
@@ -52,13 +52,11 @@ export class IdentityVerificationController {
     }
 
     const userId = req.userId;
-    const memberTenantId = req.memberTenantId;
 
     return await this.identityVerificationService.verifyPurchaseLimit(
       userId,
       eventId,
       quantity,
-      memberTenantId
     );
   }
 
@@ -89,12 +87,10 @@ export class IdentityVerificationController {
 
     const [frontFile, backFile, selfieFile] = files;
     const userId = req.userId;
-    const memberTenantId = req.memberTenantId;
 
     try {
       const result = await this.identityVerificationService.processAndCreateVerification(
         userId,
-        memberTenantId,
         eventId,
         frontFile.buffer,
         backFile.buffer,

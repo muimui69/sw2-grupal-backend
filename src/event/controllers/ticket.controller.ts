@@ -24,7 +24,8 @@ import { IOptionPipe } from '../pipe/option.pipe';
 import { TicketExistsPipe } from 'src/common/pipes/entity-exists.pipe';
 import { UpdateTicketPriceDto } from '../dto/ticket/update-price-ticket.dto';
 import { BulkUpdateTicketPriceDto } from '../dto/ticket/bulk-update-price.dto';
-import { ValidateQrDto } from '../dto/ticket/validate-qr.dto';
+// import { ValidateQrDto } from '../dto/ticket/validate-qr.dto';
+import { ValidateTicketDto } from '../dto/ticket/validate-ticket.dto';
 
 @Controller('ticket')
 @UseGuards(AuthTenantGuard, AuthSaasGuard)
@@ -94,11 +95,11 @@ export class TicketController {
 
     @Post('validate')
     validateTicket(
-        @Body() validateQrDto: ValidateQrDto,
+        @Body() ticketData: ValidateTicketDto,
         @Req() req: Request
     ) {
         return this.ticketService.validateTicket(
-            validateQrDto.qrImageData,
+            ticketData,
             req.userId,  // ID del usuario que está validando (el promotor)
             req.memberTenantId // ID del tenant al que pertenece el promotor
         );

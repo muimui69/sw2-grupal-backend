@@ -120,18 +120,14 @@ export class IdentityVerificationService {
   }
 
   /**
-   * Verifica si un usuario está intentando comprar más de 5 tickets para un mismo evento
-   * @param userId ID del usuario que está comprando
-   * @param eventId ID del evento para el que se está comprando
-   * @param quantity Cantidad de tickets que se intenta comprar
-   * @param memberTenantId ID del memberTenant para registrar la auditoría
-   * @returns Respuesta API indicando si la compra está permitida
-   */
-  async verifyPurchaseLimit(userId: string, eventId: string, quantity: number, memberTenantId: string): Promise<ApiResponse<{ isAllowed: boolean, currentCount: number, maxAllowed: number }>> {
+  * Verifica si un usuario está intentando comprar más de 5 tickets para un mismo evento
+  * @param userId ID del usuario que está comprando
+  * @param eventId ID del evento para el que se está comprando
+  * @param quantity Cantidad de tickets que se intenta comprar
+  * @returns Respuesta API indicando si la compra está permitida
+  */
+  async verifyPurchaseLimit(userId: string, eventId: string, quantity: number): Promise<ApiResponse<{ isAllowed: boolean, currentCount: number, maxAllowed: number }>> {
     try {
-      // Verificar que el usuario es miembro del tenant
-      const tenantId = await this.validateUserMembership(userId, memberTenantId);
-
       // Contar cuántos tickets ya ha comprado este usuario para este evento
       const existingTickets = await this.ticketPurchaseRepository
         .createQueryBuilder('ticketPurchase')
@@ -142,7 +138,6 @@ export class IdentityVerificationService {
         .innerJoin('section.event', 'event')
         .where('user.id = :userId', { userId })
         .andWhere('event.id = :eventId', { eventId })
-        .andWhere('ticket.tenantId = :tenantId', { tenantId })
         .select('SUM(ticketPurchase.quantity)', 'total')
         .getRawOne();
 
@@ -158,7 +153,7 @@ export class IdentityVerificationService {
         'PurchaseLimit',
         null,
         userId,
-        tenantId,
+        null, // No se necesita tenantId
         {
           eventId,
           currentTickets,
@@ -205,28 +200,24 @@ export class IdentityVerificationService {
     }
   }
 
+
   /**
-   * Procesa y valida la identidad del usuario con documentos y selfie, y crea la verificación.
-   * @param userId ID del usuario
-   * @param memberTenantId ID del memberTenant
-   * @param eventId ID del evento
-   * @param documentFrontBuffer Buffer del anverso del documento
-   * @param documentBackBuffer Buffer del reverso del documento
-   * @param selfieBuffer Buffer de la selfie
-   * @returns Información de la verificación creada y su resultado
-   */
+  * Procesa y valida la identidad del usuario con documentos y selfie, y crea la verificación.
+  * @param userId ID del usuario
+  * @param eventId ID del evento
+  * @param documentFrontBuffer Buffer del anverso del documento
+  * @param documentBackBuffer Buffer del reverso del documento
+  * @param selfieBuffer Buffer de la selfie
+  * @returns Información de la verificación creada y su resultado
+  */
   async processAndCreateVerification(
     userId: string,
-    memberTenantId: string,
     eventId: string,
     documentFrontBuffer: Buffer,
     documentBackBuffer: Buffer,
     selfieBuffer: Buffer
   ): Promise<ApiResponse<{ verification: IdentityVerification, faceMatch: boolean }>> {
     try {
-      // Verificar que el usuario es miembro del tenant
-      const tenantId = await this.validateUserMembership(userId, memberTenantId);
-
       // Realizar el reconocimiento facial para verificar que la selfie coincide con el documento
       const frontMatch = await this.compareFacesBuffer(documentFrontBuffer, selfieBuffer);
       let faceMatch = frontMatch;
@@ -236,26 +227,6 @@ export class IdentityVerificationService {
         const backMatch = await this.compareFacesBuffer(documentBackBuffer, selfieBuffer);
         faceMatch = backMatch;
       }
-
-      // // Extraer texto de los documentos
-      // const frontText = await this.extractTextFromDocument(documentFrontBuffer);
-      // const backText = await this.extractTextFromDocument(documentBackBuffer);
-
-      // // Combinar los textos para tener toda la información del documento
-      // const combinedText = [...frontText, ...backText].join(' ');
-
-      // let frontText: string[] = [];
-      // let backText: string[] = [];
-      // let combinedText = '';
-
-      // try {
-      //   // Intentar extraer texto - si falla, continuamos con arrays vacíos
-      //   frontText = await this.extractTextFromDocument(documentFrontBuffer);
-      //   backText = await this.extractTextFromDocument(documentBackBuffer);
-      //   combinedText = [...frontText, ...backText].join(' ');
-      // } catch (textError) {
-      //   console.warn('No se pudo extraer texto del documento, continuando sin texto:', textError);
-      // }
 
       // Generar nombres únicos para los archivos
       const documentFrontFileName = `${uuidv4()}_document_front.jpg`;
@@ -274,22 +245,19 @@ export class IdentityVerificationService {
 
       // Crear registro de verificación
       const verification = this.identityVerificationRepository.create({
-        tenantId,
         document_url: documentFrontPath, // Guardamos la ruta del documento frontal
         selfie_url: selfiePath,
         user: { id: userId },
         event: { id: eventId },
-        // status: false, // Pendiente de verificación manual o automática si hay coincidencia facial
+        status: faceMatch // Aprobación automática si hay coincidencia facial
       });
 
-      const savedVerification = await this.identityVerificationRepository.save(verification);
-
-      // Si hay coincidencia facial, aprobar automáticamente
+      // Si hay coincidencia facial, establecer la fecha de verificación
       if (faceMatch) {
-        savedVerification.status = true;
-        savedVerification.verified_at = new Date();
-        await this.identityVerificationRepository.save(savedVerification);
+        verification.verified_at = new Date();
       }
+
+      const savedVerification = await this.identityVerificationRepository.save(verification);
 
       // Registrar la acción en el log de auditoría
       await this.auditService.logAction(
@@ -297,11 +265,10 @@ export class IdentityVerificationService {
         'IdentityVerification',
         savedVerification.id,
         userId,
-        tenantId,
+        null, // No se necesita tenantId
         {
           eventId,
           faceMatch,
-          // textExtracted: combinedText.length > 100 ? `${combinedText.substring(0, 100)}...` : combinedText,
           autoVerified: faceMatch
         },
         null

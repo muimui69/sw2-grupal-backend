@@ -668,6 +668,7 @@ export class PurchaseService {
                 .leftJoinAndSelect('purchase.ticketPurchases', 'ticketPurchases')
                 .leftJoinAndSelect('ticketPurchases.ticket', 'ticket')
                 .leftJoinAndSelect('ticket.section', 'section') // Añadimos la sección
+                .leftJoinAndSelect('section.event', 'event') // Añadimos el evento relacionado con la sección
                 .leftJoinAndSelect('purchase.tenant', 'tenant')
                 .where('purchase.user.id = :userId', { userId });
 
