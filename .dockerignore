@@ -1,11 +1,12 @@
-# node_modules
-# dist
-# postres/
+node_modules
+dist
+postres/
 
-# *.log
-# .env
-# .DS_Store
+*.log
+.env
+.DS_Store
 
-# ./backups
-# ./logs
-# ./temp
+./backups
+./logs
+./temp
+
