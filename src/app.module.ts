@@ -17,6 +17,7 @@ import { AuditModule } from './audit/audit.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CommonModule } from './common/common.module';
 import { AwsModule } from './aws/aws.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 
 @Module({
@@ -54,7 +55,7 @@ import { AwsModule } from './aws/aws.module';
     AuditModule,
     CloudinaryModule,
     CommonModule,
-    AwsModule
+    AwsModule,ChatbotModule
   ],
   // providers: [
   //   LogsService,
