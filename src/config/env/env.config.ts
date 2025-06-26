@@ -8,6 +8,7 @@ export const envConfig = () => ({
   db_name: process.env.DB_NAME,
   db_user: process.env.DB_USER,
   db_password: process.env.DB_PASSWORD,
+  // db_ssl: process.env.DB_SSL,
   secret_key_jwt: process.env.SECRET_KEY_JWT,
   stripe_key: process.env.STRIPE_KEY,
   cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

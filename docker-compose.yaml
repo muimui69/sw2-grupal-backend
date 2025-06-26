@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
+      # target: development
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -27,8 +27,8 @@ services:
       - "3000:3000"
     env_file:
       - .env
-    environment:
-      - NODE_ENV=development
+    # environment:
+    #   - NODE_ENV=development
     command: pnpm run start:dev
     restart: always
 

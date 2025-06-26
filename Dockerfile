@@ -1,16 +1,20 @@
-# Etapa de desarrollo
-FROM node:22-alpine AS development
+FROM node:22-alpine
 
 # Instala pnpm globalmente
 RUN npm install -g pnpm
 
 WORKDIR /usr/src/app
 
-# Copia los archivos necesarios para instalación de dependencias
+# Copia los archivos necesarios para la instalación de dependencias
 COPY package.json pnpm-lock.yaml ./
 
-# Instala las dependencias (todas)
+COPY ssl/ca-certificate.crt /app/ssl/ca-certificate.crt
+
+# Instala todas las dependencias
 RUN pnpm install
+
+# Instala express explícitamente
+RUN pnpm add express
 
 # Copia el resto del código fuente
 COPY . .
@@ -18,24 +22,11 @@ COPY . .
 # Construye la aplicación
 RUN pnpm run build
 
-# Etapa de producción
-FROM node:22-alpine AS production
-
-RUN npm install -g pnpm
-
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-
-WORKDIR /usr/src/app
-
-COPY package.json pnpm-lock.yaml ./
-
-# Instala solo dependencias de producción
-RUN pnpm install --prod
-
-# Copia la app compilada desde el stage de desarrollo
-COPY --from=development /usr/src/app/dist ./dist
-
+# Cambiar al usuario node para mayor seguridad
 USER node
 
+# Exponer el puerto 3000 que utiliza NestJS por defecto
+EXPOSE 3000
+
+# Comando para ejecutar la aplicación
 CMD ["node", "dist/main"]

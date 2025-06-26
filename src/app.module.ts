@@ -11,12 +11,12 @@ import { BlockchainModule } from './blockchain/blockchain.module';
 import { PaymentModule } from './payment/payment.module';
 import { SeedModule } from './seed/seed.module';
 import { UserModule } from './user/user.module';
-import { TicketPurchase } from './payment/entities/ticket-purchase.entity';
-import { Ticket } from './event/entities/ticket.entity';
 import { AuditModule } from './audit/audit.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CommonModule } from './common/common.module';
 import { AwsModule } from './aws/aws.module';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 
 @Module({
@@ -35,6 +35,15 @@ import { AwsModule } from './aws/aws.module';
         username: configService.get<string>('db_user'),
         password: configService.get<string>('db_password'),
         database: configService.get<string>('db_name'),
+        //  local + ip
+        // ssl: {
+        //   ca: readFileSync(join(__dirname, '..', './ssl/ca-certificate.crt')),
+        //   rejectUnauthorized: true,
+        // },
+        ssl: {
+          ca: readFileSync(process.env.DB_SSL_CA_PATH || join(__dirname, '..', './ssl/ca-certificate.crt')),
+          rejectUnauthorized: true,
+        },
         autoLoadEntities: true,
         synchronize: true,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
@@ -49,8 +58,6 @@ import { AwsModule } from './aws/aws.module';
     PaymentModule,
     SeedModule,
     UserModule,
-    TicketPurchase,
-    Ticket,
     AuditModule,
     CloudinaryModule,
     CommonModule,
@@ -65,3 +72,7 @@ import { AwsModule } from './aws/aws.module';
   // ],
 })
 export class AppModule { }
+
+
+
+
