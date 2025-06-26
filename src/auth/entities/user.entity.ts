@@ -80,6 +80,12 @@ export class User {
     })
     updated_at: Date;
 
+    @Column('bool', {
+        nullable: true,
+        default: false,
+    })
+    is_policy_accepted: boolean;
+
     //?RELATIONS
     @OneToMany(() => Purchase, purchase => purchase.user)
     purchases: Purchase[];

@@ -236,23 +236,23 @@ export class IdentityVerificationService {
       const tenantId = event.tenantId;
 
       // Verificar si ya existe una verificación para este usuario y evento
-      const existingVerification = await this.identityVerificationRepository.findOne({
-        where: {
-          user: { id: userId },
-          event: { id: eventId }
-        }
-      });
+      // const existingVerification = await this.identityVerificationRepository.findOne({
+      //   where: {
+      //     user: { id: userId },
+      //     event: { id: eventId }
+      //   }
+      // });
 
-      if (existingVerification) {
-        return createApiResponse(
-          HttpStatus.BAD_REQUEST,
-          {
-            verification: existingVerification,
-            faceMatch: existingVerification.status
-          },
-          'Ya existe una verificación de identidad para este usuario en este evento'
-        );
-      }
+      // if (existingVerification) {
+      //   return createApiResponse(
+      //     HttpStatus.BAD_REQUEST,
+      //     {
+      //       verification: existingVerification,
+      //       faceMatch: existingVerification.status
+      //     },
+      //     'Ya existe una verificación de identidad para este usuario en este evento'
+      //   );
+      // }
 
       // Realizar el reconocimiento facial para verificar que la selfie coincide con el documento
       const frontMatch = await this.compareFacesBuffer(documentFrontBuffer, selfieBuffer);

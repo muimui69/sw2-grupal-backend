@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsOptional, IsPhoneNumber, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsOptional, IsPhoneNumber, IsString, MinLength } from 'class-validator';
 import { HasMimeType, IsFile, MaxFileSize, MemoryStoredFile } from 'nestjs-form-data';
 
 export class CreateUserDTO {
@@ -24,6 +24,10 @@ export class CreateUserDTO {
 
     @IsEnum(['m', 'f', 'u'])
     gender: 'm' | 'f' | 'u';
+
+    @IsOptional()
+    @IsBoolean()
+    is_policy_accepted?: boolean;
 
     @IsOptional()
     @IsFile()

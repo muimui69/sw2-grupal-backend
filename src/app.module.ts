@@ -17,6 +17,7 @@ import { CommonModule } from './common/common.module';
 import { AwsModule } from './aws/aws.module';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 
 @Module({
@@ -61,7 +62,8 @@ import { join } from 'path';
     AuditModule,
     CloudinaryModule,
     CommonModule,
-    AwsModule
+    AwsModule,
+    ChatbotModule
   ],
   // providers: [
   //   LogsService,

@@ -20,7 +20,7 @@ export class UserService {
   ) { }
 
   async createUser(createUserDto: CreateUserDTO): Promise<ApiResponse<CreateUserResponse>> {
-    const { email, fullname, lastname, phone, password, gender = GenderEnum.UNSPECIFIED } = createUserDto;
+    const { email, fullname, lastname, phone, password, gender = GenderEnum.UNSPECIFIED, is_policy_accepted } = createUserDto;
     const saltOrRounds = 10;
 
     try {
@@ -49,7 +49,8 @@ export class UserService {
           fullname,
           lastname,
           password: hashSync(password, saltOrRounds),
-          gender
+          gender,
+          is_policy_accepted: is_policy_accepted,
         });
 
         const savedUser = await queryRunner.manager.save(user);
