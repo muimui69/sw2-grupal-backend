@@ -235,7 +235,7 @@ export class IdentityVerificationService {
 
       const tenantId = event.tenantId;
 
-
+      // Verificar si ya existe una verificación para este usuario y evento
       // const existingVerification = await this.identityVerificationRepository.findOne({
       //   where: {
       //     user: { id: userId },
