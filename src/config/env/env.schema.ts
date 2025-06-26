@@ -10,6 +10,8 @@ export const envSchema = Joi.object({
   // DB_SSL: Joi.boolean().required(),
   SECRET_KEY_JWT: Joi.string().required(),
   STRIPE_KEY: Joi.string().required(),
+  STRIPE_SUCCESS_URL: Joi.string().uri().required(),
+  STRIPE_CANCEL_URL: Joi.string().uri().required(),
   CLOUDINARY_CLOUD_NAME: Joi.string().required(),
   CLOUDINARY_API_KEY: Joi.string().required(),
   CLOUDINARY_API_SECRET: Joi.string().required(),

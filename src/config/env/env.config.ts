@@ -10,6 +10,8 @@ export const envConfig = () => ({
   db_password: process.env.DB_PASSWORD,
   // db_ssl: process.env.DB_SSL,
   secret_key_jwt: process.env.SECRET_KEY_JWT,
+  stripe_sucess_url: process.env.STRIPE_SUCCESS_URL,
+  stripe_cancel_url: process.env.STRIPE_CANCEL_URL,
   stripe_key: process.env.STRIPE_KEY,
   cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,

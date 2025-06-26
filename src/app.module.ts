@@ -16,8 +16,9 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CommonModule } from './common/common.module';
 import { AwsModule } from './aws/aws.module';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+// import { join } from 'path';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { join } from 'path';
 
 
 @Module({
@@ -41,10 +42,15 @@ import { ChatbotModule } from './chatbot/chatbot.module';
         //   ca: readFileSync(join(__dirname, '..', './ssl/ca-certificate.crt')),
         //   rejectUnauthorized: true,
         // },
+        // local 2
         ssl: {
           ca: readFileSync(process.env.DB_SSL_CA_PATH || join(__dirname, '..', './ssl/ca-certificate.crt')),
-          rejectUnauthorized: true,
+          rejectUnauthorized: false,
         },
+        // ssl: {
+        //   ca: readFileSync(process.env.DB_SSL_CA_PATH || '/app/ssl/ca-certificate.crt'),
+        //   rejectUnauthorized: true,
+        // },
         autoLoadEntities: true,
         synchronize: true,
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
